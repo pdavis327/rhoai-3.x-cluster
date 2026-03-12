@@ -99,6 +99,10 @@ Wave 4: RHOAI Configuration (DataScienceCluster, telemetry)
 
 ArgoCD's built-in health checks for OLM Subscriptions ensure that operators are fully installed (CSV in `Succeeded` phase) before proceeding to the next wave.
 
+### Helm charts from another repo
+
+Applications in `manifests/argocd-applications/` define extra ArgoCD Applications that sync Helm charts from a separate Git repo. Each appears as its own app in the ArgoCD UI and is managed independently. Edit `manifests/argocd-applications/helm-charts-repo.yaml` to change the Helm repo URL or add/remove applications. If the charts repo is private, add it in ArgoCD under Settings → Repositories.
+
 ## Repository Structure
 
 ```
@@ -128,6 +132,8 @@ poc-template/
 │   └── rhoai-config/                   # Wave 4: RHOAI configuration
 │       ├── dsc.yaml
 │       └── telemetry-cm.yaml
+│   └── argocd-applications/            # Additional ArgoCD Applications (e.g. Helm from another repo)
+│       └── helm-charts-repo.yaml       # minio, modeldeploy, hardware-profile from Helm charts repo
 ├── scripts/
 │   └── bootstrap.sh
 └── README.md

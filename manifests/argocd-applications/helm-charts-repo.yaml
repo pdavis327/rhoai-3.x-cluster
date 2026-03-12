@@ -1,0 +1,102 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: minio
+  namespace: openshift-gitops
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/pdavis327/openshiftai-helmcharts.git
+    targetRevision: main
+    path: minio
+    helm:
+      releaseName: minio
+      values: |
+        namespace: country-of-origin-predictor
+        username: minio
+        password: minio123
+        storageSize: 100Gi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: minio
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+# ---
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   name: modeldeploy
+#   namespace: openshift-gitops
+# spec:
+#   project: default
+#   source:
+#     repoURL: https://github.com/pdavis327/openshiftai-helmcharts.git
+#     targetRevision: main
+#     path: models/modeldeploy
+#     helm:
+#       releaseName: modeldeploy
+#       values: |
+#         modelname: my-model
+#         namespace: redhat-ods-applications
+#         uri: "quay.io/rh-ee-petdavis/bge-large-en:2"
+#         runtime: my-model
+#         hardwareProfileName: nvidia-l4-small
+#   destination:
+#     server: https://kubernetes.default.svc
+#     namespace: redhat-ods-applications
+#   syncPolicy:
+#     automated:
+#       prune: true
+#       selfHeal: true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hardware-profile
+  namespace: openshift-gitops
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/pdavis327/openshiftai-helmcharts.git
+    targetRevision: main
+    path: hardware-profile/hardware-profile
+    helm:
+      releaseName: hardware-profile
+      values: |
+        profileName: nvidia-gpu-profile
+        hardwareProfile:
+          identifiers:
+            - resourceType: CPU
+              identifier: cpu
+              displayName: CPU
+              minCount: "8"
+              maxCount: "16"
+              defaultCount: "12"
+            - resourceType: Memory
+              identifier: memory
+              displayName: Memory
+              minCount: 32Gi
+              maxCount: 64Gi
+              defaultCount: 48Gi
+            - resourceType: Accelerator
+              identifier: nvidia.com/gpu
+              displayName: Accelerator
+              minCount: 1
+              maxCount: 1
+              defaultCount: 1
+          scheduling:
+            node:
+              tolerations:
+                - key: nvidia.com/gpu
+                  operator: Exists
+                  effect: NoSchedule
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: redhat-ods-applications
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
