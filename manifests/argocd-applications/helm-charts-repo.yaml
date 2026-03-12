@@ -24,33 +24,33 @@ spec:
     automated:
       prune: true
       selfHeal: true
-# ---
-# apiVersion: argoproj.io/v1alpha1
-# kind: Application
-# metadata:
-#   name: modeldeploy
-#   namespace: openshift-gitops
-# spec:
-#   project: default
-#   source:
-#     repoURL: https://github.com/pdavis327/openshiftai-helmcharts.git
-#     targetRevision: main
-#     path: models/modeldeploy
-#     helm:
-#       releaseName: modeldeploy
-#       values: |
-#         modelname: my-model
-#         namespace: redhat-ods-applications
-#         uri: "quay.io/rh-ee-petdavis/bge-large-en:2"
-#         runtime: my-model
-#         hardwareProfileName: nvidia-l4-small
-#   destination:
-#     server: https://kubernetes.default.svc
-#     namespace: redhat-ods-applications
-#   syncPolicy:
-#     automated:
-#       prune: true
-#       selfHeal: true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: modeldeploy
+  namespace: openshift-gitops
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/pdavis327/openshiftai-helmcharts.git
+    targetRevision: main
+    path: models/modeldeploy
+    helm:
+      releaseName: model-bge-large-en
+      values: |
+        modelname: bge-large-embedding-model
+        namespace: country-of-origin-predictor
+        uri: "quay.io/rh-ee-petdavis/bge-large-en:2"
+        runtime: bge-large-embedding-model
+        hardwareProfileName: nvidia-l4-small
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: redhat-ods-applications
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
