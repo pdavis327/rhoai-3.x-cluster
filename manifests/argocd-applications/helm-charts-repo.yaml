@@ -66,7 +66,9 @@ spec:
     helm:
       releaseName: hardware-profile
       values: |
-        profileName: NVIDIA-L40S
+        # Use lowercase profileName: Kubernetes resource names must be RFC 1123 (lowercase).
+        # This creates HardwareProfile named "nvidia-l40s"; reference this name in InferenceService hardwareProfileName.
+        profileName: nvidia-l40s
         hardwareProfile:
           identifiers:
             - resourceType: CPU
