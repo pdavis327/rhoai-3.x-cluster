@@ -102,3 +102,56 @@ spec:
     automated:
       prune: true
       selfHeal: true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hardware-profile-small
+  namespace: openshift-gitops
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/pdavis327/openshiftai-helmcharts.git
+    targetRevision: main
+    path: hardware-profile
+    helm:
+      releaseName: hardware-profile
+      values: |
+        profileName: nvidia-l4-small
+        hardwareProfile:
+          identifiers:
+            - resourceType: CPU
+              identifier: cpu
+              displayName: CPU
+              minCount: "2"
+              maxCount: "4"
+              defaultCount: "3"
+            - resourceType: Memory
+              identifier: memory
+              displayName: Memory
+              minCount: 6Gi
+              maxCount: 12Gi
+              defaultCount: 10Gi
+            - resourceType: Accelerator
+              identifier: nvidia.com/gpu
+              displayName: Accelerator
+              minCount: 1
+              maxCount: 1
+              defaultCount: 1
+          scheduling:
+            node:
+              tolerations:
+                - key: nvidia.com/gpu
+                  operator: Exists
+                  effect: NoSchedule
+                - key: smallgpu
+                  operator: Exists
+                  effect: NoSchedule
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: redhat-ods-applications
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
