@@ -62,11 +62,11 @@ spec:
   source:
     repoURL: https://github.com/pdavis327/openshiftai-helmcharts.git
     targetRevision: main
-    path: hardware-profile/hardware-profile
+    path: hardware-profile
     helm:
       releaseName: hardware-profile
       values: |
-        profileName: nvidia-gpu-profile
+        profileName: NVIDIA-L40S
         hardwareProfile:
           identifiers:
             - resourceType: CPU
