@@ -45,8 +45,8 @@ spec:
         runtime: bge-large-embedding-model
         hardwareProfileName: nvidia-l4-small
         # Scale down: set minReplicas: 0, maxReplicas: 0 then sync
-        minReplicas: 1
-        maxReplicas: 1
+        minReplicas: 0
+        maxReplicas: 0
   destination:
     server: https://kubernetes.default.svc
     namespace: country-of-origin-predictor
