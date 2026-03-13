@@ -47,6 +47,13 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: country-of-origin-predictor
+  ignoreDifferences:
+    # InferenceService: controller and API normalize resources (e.g. 3 vs '3') and toleration order
+    - group: serving.kserve.io
+      kind: InferenceService
+      jsonPointers:
+        - /spec/predictor/model/resources
+        - /spec/predictor/tolerations
   syncPolicy:
     automated:
       prune: true
@@ -61,7 +68,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/pdavis327/openshiftai-helmcharts.git
-    targetRevision: main
+    targetRevision: fix-model-deploy
     path: hardware-profile
     helm:
       releaseName: hardware-profile
