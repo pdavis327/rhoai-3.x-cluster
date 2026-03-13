@@ -33,7 +33,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/pdavis327/openshiftai-helmcharts.git
+    repoURL: https://github.com/pdavis327/openshiftai-helmcharts/tree/fix-model-deploy.git
     targetRevision: main
     path: models/modeldeploy
     helm:
@@ -41,7 +41,7 @@ spec:
       values: |
         modelname: bge-large-embedding-model
         namespace: country-of-origin-predictor
-        uri: "quay.io/rh-ee-petdavis/bge-large-en:2"
+        uri: "oci://quay.io/rh-ee-petdavis/bge-large-en:2"
         runtime: bge-large-embedding-model
         hardwareProfileName: nvidia-l4-small
   destination:
