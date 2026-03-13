@@ -74,9 +74,9 @@ spec:
             - resourceType: CPU
               identifier: cpu
               displayName: CPU
-              minCount: "8"
-              maxCount: "16"
-              defaultCount: "12"
+              minCount: 8
+              maxCount: 16
+              defaultCount: 12
             - resourceType: Memory
               identifier: memory
               displayName: Memory
@@ -124,9 +124,9 @@ spec:
             - resourceType: CPU
               identifier: cpu
               displayName: CPU
-              minCount: "2"
-              maxCount: "4"
-              defaultCount: "3"
+              minCount: 2
+              maxCount: 4
+              defaultCount: 3
             - resourceType: Memory
               identifier: memory
               displayName: Memory
