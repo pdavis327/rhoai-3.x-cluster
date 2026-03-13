@@ -113,7 +113,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/pdavis327/openshiftai-helmcharts.git
-    targetRevision: main
+    targetRevision: fix-model-deploy
     path: hardware-profile
     helm:
       releaseName: hardware-profile
