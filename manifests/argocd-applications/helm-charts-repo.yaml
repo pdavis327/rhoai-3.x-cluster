@@ -44,19 +44,18 @@ spec:
         uri: "oci://quay.io/rh-ee-petdavis/bge-large-en:2"
         runtime: bge-large-embedding-model
         hardwareProfileName: nvidia-l4-small
-        # Scale down: set minReplicas: 0, maxReplicas: 0 then sync
-        minReplicas: 0
-        maxReplicas: 0
   destination:
     server: https://kubernetes.default.svc
     namespace: country-of-origin-predictor
   ignoreDifferences:
-    # InferenceService: controller and API normalize resources (e.g. 3 vs '3') and toleration order
+    # InferenceService: controller injects resources/tolerations and can drop maxReplicas
     - group: serving.kserve.io
       kind: InferenceService
       jsonPointers:
         - /spec/predictor/model/resources
         - /spec/predictor/tolerations
+        - /spec/predictor/minReplicas
+        - /spec/predictor/maxReplicas
   syncPolicy:
     automated:
       prune: true
