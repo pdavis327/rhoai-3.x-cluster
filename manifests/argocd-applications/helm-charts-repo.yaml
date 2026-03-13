@@ -34,7 +34,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/pdavis327/openshiftai-helmcharts.git
-    targetRevision: fix-model-deploy
+    targetRevision: main
     path: models/modeldeploy
     helm:
       releaseName: model-bge-large-en
@@ -44,6 +44,9 @@ spec:
         uri: "oci://quay.io/rh-ee-petdavis/bge-large-en:2"
         runtime: bge-large-embedding-model
         hardwareProfileName: nvidia-l4-small
+        # Scale down: set minReplicas: 0, maxReplicas: 0 then sync
+        minReplicas: 1
+        maxReplicas: 1
   destination:
     server: https://kubernetes.default.svc
     namespace: country-of-origin-predictor
@@ -68,7 +71,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/pdavis327/openshiftai-helmcharts.git
-    targetRevision: fix-model-deploy
+    targetRevision: main
     path: hardware-profile
     helm:
       releaseName: hardware-profile
@@ -120,7 +123,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/pdavis327/openshiftai-helmcharts.git
-    targetRevision: fix-model-deploy
+    targetRevision: main
     path: hardware-profile
     helm:
       releaseName: hardware-profile
