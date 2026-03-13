@@ -46,7 +46,7 @@ spec:
         hardwareProfileName: nvidia-l4-small
   destination:
     server: https://kubernetes.default.svc
-    namespace: redhat-ods-applications
+    namespace: country-of-origin-predictor
   syncPolicy:
     automated:
       prune: true
