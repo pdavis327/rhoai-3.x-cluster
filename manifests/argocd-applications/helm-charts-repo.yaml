@@ -33,8 +33,8 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/pdavis327/openshiftai-helmcharts/tree/fix-model-deploy.git
-    targetRevision: main
+    repoURL: https://github.com/pdavis327/openshiftai-helmcharts.git
+    targetRevision: fix-model-deploy
     path: models/modeldeploy
     helm:
       releaseName: model-bge-large-en
