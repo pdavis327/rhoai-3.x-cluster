@@ -1,27 +1,31 @@
----
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: model-registry
-  namespace: openshift-gitops
-spec:
-  project: default
-  source:
-    repoURL: https://github.com/pdavis327/openshiftai-helmcharts.git
-    targetRevision: main
-    path: model-registry
-    helm:
-      releaseName: model-registry
-      values: |
-        namespace: rhoai-model-registries
-        mysql:
-          user: 'admin'
-          password: 'admin123'
-          database: 'coo-registry'
-          root_password: 'admin123'
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: rhoai-model-registries
+# ---
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   name: model-registry
+#   namespace: openshift-gitops
+# spec:
+#   project: default
+#   source:
+#     repoURL: https://github.com/pdavis327/openshiftai-helmcharts.git
+#     targetRevision: main
+#     path: model-registry
+#     helm:
+#       releaseName: model-registry
+#       values: |
+#         namespace: rhoai-model-registries
+#         mysql:
+#           user: 'admin'
+#           password: 'admin123'
+#           database: 'coo-registry'
+#           root_password: 'admin123'
+#   destination:
+#     server: https://kubernetes.default.svc
+#     namespace: rhoai-model-registries
+#   syncPolicy:
+#     automated:
+#       prune: true
+#       selfHeal: true
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
