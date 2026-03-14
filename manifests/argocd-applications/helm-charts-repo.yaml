@@ -9,7 +9,7 @@ spec:
   source:
     repoURL: https://github.com/pdavis327/openshiftai-helmcharts.git
     targetRevision: main
-    path: create-model-registry
+    path: model-registry
     helm:
       releaseName: model-registry
       values: |
