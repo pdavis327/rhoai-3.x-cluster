@@ -1,0 +1,66 @@
+apiVersion: opendatahub.io/v1alpha
+kind: OdhDashboardConfig
+metadata:
+  annotations:
+    internal.config.kubernetes.io/previousKinds: OdhDashboardConfig
+    internal.config.kubernetes.io/previousNames: odh-dashboard-config
+    internal.config.kubernetes.io/previousNamespaces: default
+    platform.opendatahub.io/instance.generation: '1'
+    platform.opendatahub.io/instance.name: default-dashboard
+    platform.opendatahub.io/type: OpenShift AI Self-Managed
+    platform.opendatahub.io/version: 3.3.0
+  resourceVersion: '59475'
+  name: odh-dashboard-config
+  generation: 1
+  managedFields:
+    - apiVersion: opendatahub.io/v1alpha
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:metadata':
+          'f:annotations':
+            'f:internal.config.kubernetes.io/previousNames': {}
+            'f:platform.opendatahub.io/version': {}
+            'f:platform.opendatahub.io/instance.uid': {}
+            .: {}
+            'f:platform.opendatahub.io/instance.name': {}
+            'f:platform.opendatahub.io/type': {}
+            'f:internal.config.kubernetes.io/previousKinds': {}
+            'f:platform.opendatahub.io/instance.generation': {}
+            'f:internal.config.kubernetes.io/previousNamespaces': {}
+          'f:labels':
+            .: {}
+            'f:app': {}
+            'f:app.kubernetes.io/part-of': {}
+            'f:app.opendatahub.io/rhods-dashboard': {}
+            'f:platform.opendatahub.io/part-of': {}
+        'f:spec':
+          .: {}
+          'f:dashboardConfig':
+            .: {}
+            'f:disableTracking': {}
+          'f:hardwareProfileOrder': {}
+          'f:notebookController':
+            .: {}
+            'f:enabled': {}
+            'f:notebookNamespace': {}
+            'f:pvcSize': {}
+          'f:templateDisablement': {}
+          'f:templateOrder': {}
+      manager: manager
+      operation: Update
+  namespace: redhat-ods-applications
+  labels:
+    app: rhods-dashboard
+    app.kubernetes.io/part-of: rhods-dashboard
+    app.opendatahub.io/rhods-dashboard: 'true'
+    platform.opendatahub.io/part-of: dashboard
+spec:
+  dashboardConfig:
+    disableTracking: false
+  hardwareProfileOrder: []
+  notebookController:
+    enabled: true
+    notebookNamespace: rhods-notebooks
+    pvcSize: 20Gi
+  templateDisablement: []
+  templateOrder: []
