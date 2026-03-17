@@ -5,13 +5,10 @@ metadata:
     internal.config.kubernetes.io/previousKinds: OdhDashboardConfig
     internal.config.kubernetes.io/previousNames: odh-dashboard-config
     internal.config.kubernetes.io/previousNamespaces: default
-    platform.opendatahub.io/instance.generation: '1'
     platform.opendatahub.io/instance.name: default-dashboard
     platform.opendatahub.io/type: OpenShift AI Self-Managed
     platform.opendatahub.io/version: 3.3.0
-  resourceVersion: '59475'
   name: odh-dashboard-config
-  generation: 1
   namespace: redhat-ods-applications
   labels:
     app: rhods-dashboard
