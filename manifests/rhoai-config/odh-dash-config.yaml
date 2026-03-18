@@ -15,10 +15,11 @@ metadata:
     app.kubernetes.io/part-of: rhods-dashboard
     app.opendatahub.io/rhods-dashboard: 'true'
     platform.opendatahub.io/part-of: dashboard
-spec:
+spec:   
   dashboardConfig:
     disableTracking: false
     genAiStuddio: true
+    modelAsService: true
   hardwareProfileOrder: []
   notebookController:
     enabled: true
