@@ -18,6 +18,7 @@ metadata:
 spec:
   dashboardConfig:
     disableTracking: false
+    genAiStuddio: true
   hardwareProfileOrder: []
   notebookController:
     enabled: true
