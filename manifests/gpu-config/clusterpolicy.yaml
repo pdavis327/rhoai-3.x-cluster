@@ -61,6 +61,9 @@ spec:
       - effect: NoSchedule
         key: smallgpu
         operator: Exists
+      - effect: NoSchedule
+        key: largegpu
+        operator: Exists
   devicePlugin:
     enabled: true
     config:
