@@ -20,13 +20,13 @@ metadata:
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
-  name: connectivity-link-operator
+  name: kuadrant-operator
   namespace: redhat-connectivity-link-operator
   annotations:
     argocd.argoproj.io/sync-wave: "1"
 spec:
   channel: stable
-  name: connectivity-link
-  source: redhat-operators
+  name: kuadrant-operator
+  source: community-operators
   sourceNamespace: openshift-marketplace
   installPlanApproval: Automatic
