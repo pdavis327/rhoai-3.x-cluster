@@ -2,6 +2,7 @@ apiVersion: opendatahub.io/v1alpha
 kind: OdhDashboardConfig
 metadata:
   annotations:
+    argocd.argoproj.io/sync-wave: "5"
     internal.config.kubernetes.io/previousKinds: OdhDashboardConfig
     internal.config.kubernetes.io/previousNames: odh-dashboard-config
     internal.config.kubernetes.io/previousNamespaces: default
