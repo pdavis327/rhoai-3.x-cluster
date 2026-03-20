@@ -78,6 +78,7 @@ spec:
         uri: "oci://quay.io/rh-ee-petdavis/bge-large-en:2"
         runtime: bge-large-embedding-model
         hardwareProfileName: nvidia-l4-small
+        enableAuth: "true"
   destination:
     server: https://kubernetes.default.svc
     namespace: country-of-origin-predictor
@@ -111,8 +112,6 @@ spec:
     helm:
       releaseName: hardware-profile
       values: |
-        # Use lowercase profileName: Kubernetes resource names must be RFC 1123 (lowercase).
-        # This creates HardwareProfile named "nvidia-l40s"; reference this name in InferenceService hardwareProfileName.
         profileName: nvidia-l40s
         hardwareProfile:
           identifiers:
