@@ -83,7 +83,6 @@ spec:
     server: https://kubernetes.default.svc
     namespace: country-of-origin-predictor
   ignoreDifferences:
-    # InferenceService: controller injects resources/tolerations and can drop maxReplicas
     - group: serving.kserve.io
       kind: InferenceService
       jsonPointers:
@@ -91,6 +90,11 @@ spec:
         - /spec/predictor/tolerations
         - /spec/predictor/minReplicas
         - /spec/predictor/maxReplicas
+    - group: ""
+      kind: ServiceAccount
+      jsonPointers:
+        - /imagePullSecrets
+        - /secrets
   syncPolicy:
     automated:
       prune: true

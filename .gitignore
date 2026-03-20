@@ -9,6 +9,8 @@ __pycache__/
 
 # data
 
+#machine deployments
+machinesets/
 
 infrastructure/
 # Distribution / packaging
