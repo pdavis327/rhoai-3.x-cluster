@@ -21,6 +21,7 @@ spec:
     disableTracking: false
     genAiStudio: true
     modelAsService: true
+    disableLMEval: false
   hardwareProfileOrder: []
   notebookController:
     enabled: true
