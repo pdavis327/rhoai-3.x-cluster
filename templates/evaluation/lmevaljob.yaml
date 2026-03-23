@@ -1,0 +1,35 @@
+apiVersion: trustyai.opendatahub.io/v1alpha1
+kind: LMEvalJob
+metadata:
+  name: {{ .Values.evaljobname }}
+  namespace: {{ .Values.namespace }}
+spec:
+  model: {{ .Values.modeltype | default "local-completions" }}
+  modelArgs:
+    - name: model
+      value: {{ .Values.modelName }}
+    - name: base_url
+      value: {{ .Values.modelEndpoint }}/v1/completions
+    - name: num_concurrent
+      value: "1"
+    - name: max_retries
+      value: "3"
+    - name: tokenized_requests
+      value: "false"
+    - name: tokenizer
+      value: {{ .Values.tokenizer }}
+  taskList:
+    taskNames:
+      - {{ .Values.task | default "mmlu" }}
+  logSamples: true
+  batchSize: {{ .Values.batchSize | default 1 }}
+  allowOnline: true
+  allowCodeExecution: true
+  pod:
+    container:
+      env:
+        - name: OPENAI_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.modelTokenSecret }}
+              key: {{ .Values.modelTokenKey | default "token" }}

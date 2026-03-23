@@ -1,0 +1,10 @@
+namespace: rhoai-evaluation
+evaljobname: evaljob-sample
+modeltype: local-completions
+modelName: mistral-small-24b-instruct
+modelEndpoint: https://my-model.apps.cluster.example.com
+tokenizer: RedHatAI/Mistral-Small-24B-Instruct-2501-FP8-dynamic
+modelTokenSecret: model-auth-token
+modelTokenKey: token
+task: mmlu
+batchSize: 1
