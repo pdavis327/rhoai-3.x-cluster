@@ -208,3 +208,29 @@ spec:
     automated:
       prune: true
       selfHeal: true
+
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: lmevaljob
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/pdavis327/openshiftai-helmcharts.git
+    targetRevision: main
+    path: evaluation
+    helm:
+      releaseName: evaluation
+      values: |
+        namespace: fine-tuning
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: fine-tuning
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
