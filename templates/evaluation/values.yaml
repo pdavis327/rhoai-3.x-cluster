@@ -1,10 +1,10 @@
-namespace: rhoai-evaluation
-evaljobname: evaljob-sample
-modeltype: local-completions
-modelName: mistral-small-24b-instruct
-modelEndpoint: https://my-model.apps.cluster.example.com
+namespace: fine-tuning
+evaljobname: ifeval-mistral
+modeltype: local-chat-completions
+modelName: Mistral-Small-24B-FP8
+modelEndpoint: https://mistral-small-24b-fp8-code-assistant.apps.cluster-kjpfb.kjpfb.sandbox5560.opentlc.com
 tokenizer: RedHatAI/Mistral-Small-24B-Instruct-2501-FP8-dynamic
-modelTokenSecret: model-auth-token
+modelTokenSecret: mistral-sa-mistral-small-24b-fp8-sa
 modelTokenKey: token
-task: mmlu
+task: ifeval
 batchSize: 1

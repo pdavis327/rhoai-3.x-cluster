@@ -5,11 +5,19 @@ metadata:
   namespace: {{ .Values.namespace }}
 spec:
   model: {{ .Values.modeltype | default "local-completions" }}
+  {{- if eq (.Values.modeltype | default "local-completions") "local-chat-completions" }}
+  chatTemplate:
+    enabled: true
+  {{- end }}
   modelArgs:
     - name: model
       value: {{ .Values.modelName }}
     - name: base_url
+      {{- if eq (.Values.modeltype | default "local-completions") "local-chat-completions" }}
+      value: {{ .Values.modelEndpoint }}/v1/chat/completions
+      {{- else }}
       value: {{ .Values.modelEndpoint }}/v1/completions
+      {{- end }}
     - name: num_concurrent
       value: "1"
     - name: max_retries
