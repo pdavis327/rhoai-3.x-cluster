@@ -1,6 +1,0 @@
-apiVersion: v2
-name: lmevaljob
-description: A chart for running LMEvalJob evaluations on OpenShift AI.
-type: application
-version: 0.0.1
-appVersion: "0.0.1"

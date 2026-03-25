@@ -139,6 +139,8 @@ spec:
               defaultCount: 1
           scheduling:
             node:
+              nodeSelector:
+                gpu-type: largegpu
               tolerations:
                 - key: nvidia.com/gpu
                   operator: Exists
@@ -194,6 +196,8 @@ spec:
               defaultCount: 1
           scheduling:
             node:
+              nodeSelector:
+                gpu-type: smallgpu
               tolerations:
                 - key: nvidia.com/gpu
                   operator: Exists

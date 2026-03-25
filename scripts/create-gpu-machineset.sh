@@ -7,29 +7,40 @@ set -euo pipefail
 # Clones an existing worker MachineSet and modifies it for GPU instances.
 #
 # Usage:
-#   ./scripts/create-gpu-machineset.sh <instance-type> [replicas]
+#   ./scripts/create-gpu-machineset.sh <instance-type> <gpu-taint-key> [replicas]
 #
 # Examples:
-#   ./scripts/create-gpu-machineset.sh g6e.4xlarge       # L40S, 1 GPU
-#   ./scripts/create-gpu-machineset.sh g4dn.4xlarge      # T4, 1 GPU
-#   ./scripts/create-gpu-machineset.sh p4d.24xlarge       # A100, 8 GPUs
-#   ./scripts/create-gpu-machineset.sh g6e.4xlarge 2      # 2 replicas
+#   ./scripts/create-gpu-machineset.sh g6.2xlarge smallgpu       # L4 small GPU
+#   ./scripts/create-gpu-machineset.sh g6e.4xlarge largegpu      # L40S large GPU
+#   ./scripts/create-gpu-machineset.sh g6e.4xlarge largegpu 2    # 2 replicas
 # =============================================================================
 
 INSTANCE_TYPE=${1:-}
-REPLICAS=${2:-1}
+GPU_TAINT_KEY=${2:-}
+REPLICAS=${3:-1}
 
-if [ -z "$INSTANCE_TYPE" ]; then
-  echo "Usage: $0 <instance-type> [replicas]"
+if [ -z "$INSTANCE_TYPE" ] || [ -z "$GPU_TAINT_KEY" ]; then
+  echo "Usage: $0 <instance-type> <gpu-taint-key> [replicas]"
+  echo ""
+  echo "Arguments:"
+  echo "  instance-type   AWS GPU instance type"
+  echo "  gpu-taint-key   Taint key for node scheduling (e.g. smallgpu, largegpu)"
+  echo "  replicas        Number of replicas (default: 1)"
   echo ""
   echo "Common GPU instance types:"
-  echo "  g6e.4xlarge    - NVIDIA L40S (48GB), 1 GPU"
-  echo "  g6e.12xlarge   - NVIDIA L40S (48GB), 4 GPUs"
-  echo "  g4dn.4xlarge   - NVIDIA T4 (16GB), 1 GPU"
-  echo "  g4dn.12xlarge  - NVIDIA T4 (16GB), 4 GPUs"
-  echo "  g5.4xlarge     - NVIDIA A10G (24GB), 1 GPU"
-  echo "  p4d.24xlarge   - NVIDIA A100 (40GB), 8 GPUs"
-  echo "  p5.48xlarge    - NVIDIA H100 (80GB), 8 GPUs"
+  echo "  g6.2xlarge     - NVIDIA L4 (24GB), 1 GPU      (smallgpu)"
+  echo "  g6e.4xlarge    - NVIDIA L40S (48GB), 1 GPU     (largegpu)"
+  echo "  g6e.12xlarge   - NVIDIA L40S (48GB), 4 GPUs    (largegpu)"
+  echo "  g4dn.4xlarge   - NVIDIA T4 (16GB), 1 GPU       (smallgpu)"
+  echo "  g4dn.12xlarge  - NVIDIA T4 (16GB), 4 GPUs      (smallgpu)"
+  echo "  g5.4xlarge     - NVIDIA A10G (24GB), 1 GPU      (largegpu)"
+  echo "  p4d.24xlarge   - NVIDIA A100 (40GB), 8 GPUs     (largegpu)"
+  echo "  p5.48xlarge    - NVIDIA H100 (80GB), 8 GPUs     (largegpu)"
+  echo ""
+  echo "Examples:"
+  echo "  $0 g6.2xlarge smallgpu       # Small GPU node"
+  echo "  $0 g6e.4xlarge largegpu      # Large GPU node"
+  echo "  $0 g6e.4xlarge largegpu 2    # Large GPU, 2 replicas"
   exit 1
 fi
 
@@ -40,6 +51,7 @@ echo "  Create GPU MachineSet"
 echo "============================================"
 echo ""
 echo "  Instance type: ${INSTANCE_TYPE}"
+echo "  GPU taint:     ${GPU_TAINT_KEY}:NoSchedule"
 echo "  MachineSet:    ${GPU_MS_NAME}"
 echo "  Replicas:      ${REPLICAS}"
 echo ""
@@ -121,6 +133,16 @@ oc -n openshift-machine-api \
 oc -n openshift-machine-api \
   patch "${MACHINE_SET_TYPE}" \
   --type=merge --patch '{"metadata":{"labels":{"cluster-api/accelerator":"nvidia-gpu"}}}'
+
+# GPU size label for nodeSelector targeting
+oc -n openshift-machine-api \
+  patch "${MACHINE_SET_TYPE}" \
+  --type=merge --patch '{"spec":{"template":{"spec":{"metadata":{"labels":{"gpu-type":"'"${GPU_TAINT_KEY}"'"}}}}}}'
+
+# Taint so only workloads with matching tolerations can schedule here
+oc -n openshift-machine-api \
+  patch "${MACHINE_SET_TYPE}" \
+  --type=merge --patch '{"spec":{"template":{"spec":{"taints":[{"key":"nvidia.com/gpu","effect":"NoSchedule"},{"key":"'"${GPU_TAINT_KEY}"'","effect":"NoSchedule"}]}}}}'
 
 # Ensure instance type is set
 oc -n openshift-machine-api \
