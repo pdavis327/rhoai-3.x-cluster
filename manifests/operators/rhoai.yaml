@@ -26,6 +26,6 @@ metadata:
     argocd.argoproj.io/sync-wave: "2"
 spec:
   name: rhods-operator
-  channel: beta
+  channel: stable-3.3
   source: redhat-operators
   sourceNamespace: openshift-marketplace
