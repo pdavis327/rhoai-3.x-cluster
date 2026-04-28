@@ -13,7 +13,9 @@ spec:
     dashboard:
       managementState: Managed
     feastoperator:
-      managementState: Removed
+      managementState: Managed
+    mlflowoperator:
+      managementState: Managed
     kserve:
       managementState: Managed
       modelsAsService:
