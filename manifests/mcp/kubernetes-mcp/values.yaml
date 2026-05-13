@@ -113,7 +113,13 @@ nodeSelector: {}
 
 tolerations: []
 
-affinity: {}  
+affinity: {}
+
+# Refuse mutating MCP tools at the process level (defense in depth beside Kubernetes RBAC).
+# --stateless suits HTTP/streamable MCP behind a Service. See upstream chart docs.
+extraArgs:
+  - "--read-only"
+  - "--stateless"
 
 # Path to the configuration file inside the container
 configFilePath: /etc/kubernetes-mcp-server/config.toml
@@ -122,10 +128,7 @@ configFilePath: /etc/kubernetes-mcp-server/config.toml
 config:
   port: "8080"
 
-# -- RBAC configuration for the MCP server
+# Chart RBAC: only rbac.extra* lists are rendered. No edit RoleBinding here.
+# Cluster-wide API read for SA ocp-mcp comes from manifests/rhoai-config/ocp-mcp-rbac.yaml (view).
 rbac:
-  # -- Specifies whether to create a RoleBinding
   create: true
-  # -- ClusterRole to bind (default: edit)
-  # -- The edit ClusterRole allows read/write access to most resources in the namespace
-  clusterRole: edit
