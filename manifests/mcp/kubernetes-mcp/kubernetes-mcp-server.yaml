@@ -14,7 +14,7 @@ spec:
       path: .
       helm:
         valueFiles:
-          - $values/manifests/mcp/kubernetes-mcp/kubernetes-mcp-server/values.yaml
+          - $values/manifests/mcp/kubernetes-mcp/values.yaml
     - repoURL: https://github.com/pdavis327/rhoai-3.3-cluster
       targetRevision: main
       ref: values
