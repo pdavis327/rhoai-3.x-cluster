@@ -36,7 +36,7 @@ spec:
     trainingoperator:
       managementState: Managed
     trustyai:
-      managementState: Removed
+      managementState: Managed
       eval:
         lmeval:
            permitOnline: allow
