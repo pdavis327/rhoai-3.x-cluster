@@ -37,10 +37,10 @@ spec:
       managementState: Managed
     trustyai:
       managementState: Managed
-      # eval:
-      #   lmeval:
-      #      permitOnline: allow
-      #      permitCodeExecution: allow
+      eval:
+        lmeval:
+           permitOnline: allow
+           permitCodeExecution: allow
     workbenches:
       managementState: Managed
       workbenchNamespace: rhods-notebooks
