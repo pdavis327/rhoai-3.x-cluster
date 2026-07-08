@@ -28,7 +28,7 @@ spec:
       managementState: Unmanaged
     llamastackoperator:
       managementState: Managed
-    modelregistry:x
+    modelregistry:
       managementState: Managed
       registriesNamespace: rhoai-model-registries
     ray:
