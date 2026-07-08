@@ -60,49 +60,6 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: modeldeploy
-  namespace: openshift-gitops
-  annotations:
-    argocd.argoproj.io/sync-wave: "5"
-spec:
-  project: default
-  source:
-    repoURL: https://github.com/pdavis327/openshiftai-helmcharts.git
-    targetRevision: main
-    path: models/modeldeploy
-    helm:
-      releaseName: model-bge-large-en
-      values: |
-        modelname: bge-large-embedding-model
-        namespace: country-of-origin-predictor
-        uri: "oci://quay.io/rh-ee-petdavis/bge-large-en:2"
-        runtime: bge-large-embedding-model
-        hardwareProfileName: nvidia-l4-small
-        enableAuth: "true"
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: country-of-origin-predictor
-  ignoreDifferences:
-    - group: serving.kserve.io
-      kind: InferenceService
-      jsonPointers:
-        - /spec/predictor/model/resources
-        - /spec/predictor/tolerations
-        - /spec/predictor/minReplicas
-        - /spec/predictor/maxReplicas
-    - group: ""
-      kind: ServiceAccount
-      jsonPointers:
-        - /imagePullSecrets
-        - /secrets
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
----
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
   name: hardware-profile
   namespace: openshift-gitops
   annotations:
