@@ -74,7 +74,7 @@ spec:
       releaseName: model-bge-large-en
       values: |
         inferenceService:
-          enabled: true
+          enabled: false
         modelname: bge-large-embedding-model
         namespace: country-of-origin-predictor
         uri: "oci://quay.io/rh-ee-petdavis/bge-large-en:2"
