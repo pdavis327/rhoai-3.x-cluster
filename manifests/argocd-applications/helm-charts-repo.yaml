@@ -74,7 +74,7 @@ spec:
       releaseName: model-bge-large-en
       values: |
         inferenceService:
-          enabled: false
+          enabled: true
         modelname: bge-large-embedding-model
         namespace: country-of-origin-predictor
         uri: "oci://quay.io/rh-ee-petdavis/bge-large-en:2"
@@ -99,6 +99,9 @@ spec:
       jqPathExpressions:
         - .metadata.annotations["openshift.io/internal-registry-pull-secret-ref"]
   syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
     syncOptions:
       - RespectIgnoreDifferences=true
 ---
