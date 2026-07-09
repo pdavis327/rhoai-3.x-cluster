@@ -22,6 +22,7 @@ spec:
     genAiStudio: true
     modelAsService: true
     disableLMEval: false
+    disableKueue: false
   hardwareProfileOrder: []
   notebookController:
     enabled: true
