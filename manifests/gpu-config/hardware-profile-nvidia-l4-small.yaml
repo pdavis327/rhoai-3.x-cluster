@@ -1,0 +1,41 @@
+apiVersion: infrastructure.opendatahub.io/v1
+kind: HardwareProfile
+metadata:
+  annotations:
+    opendatahub.io/dashboard-feature-visibility: '[]'
+    opendatahub.io/disabled: "false"
+    opendatahub.io/display-name: nvidia-l4-small
+  name: nvidia-l4-small
+  namespace: redhat-ods-applications
+spec:
+  identifiers:
+    - defaultCount: 3
+      displayName: CPU
+      identifier: cpu
+      maxCount: 4
+      minCount: 2
+      resourceType: CPU
+    - defaultCount: 10Gi
+      displayName: Memory
+      identifier: memory
+      maxCount: 12Gi
+      minCount: 6Gi
+      resourceType: Memory
+    - defaultCount: 1
+      displayName: Accelerator
+      identifier: nvidia.com/gpu
+      maxCount: 1
+      minCount: 1
+      resourceType: Accelerator
+  scheduling:
+    type: Node
+    node:
+      nodeSelector:
+        gpu-type: smallgpu
+      tolerations:
+        - effect: NoSchedule
+          key: nvidia.com/gpu
+          operator: Exists
+        - effect: NoSchedule
+          key: smallgpu
+          operator: Exists

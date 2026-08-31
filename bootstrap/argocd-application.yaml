@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/pdavis327/rhoai-3.3-cluster
+    repoURL: https://github.com/pdavis327/rhoai-3.x-cluster
     targetRevision: main
     path: manifests
     directory:
