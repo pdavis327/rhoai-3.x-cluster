@@ -4,7 +4,7 @@ metadata:
   name: my-server
 spec:
   distribution:
-    name: rh-dev
+    name: rh
   workload:
     replicas: 1
     storage:

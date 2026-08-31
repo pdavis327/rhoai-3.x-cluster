@@ -28,8 +28,6 @@ spec:
       managementState: Unmanaged
     ogx:
       managementState: Managed
-    lls:
-      managementState: Removed
     modelregistry:
       managementState: Managed
       registriesNamespace: rhoai-model-registries
