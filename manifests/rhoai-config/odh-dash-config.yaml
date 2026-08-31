@@ -24,6 +24,19 @@ spec:
     disableKueue: false
     disableLMEval: false
     disableKueue: false
+    mcpCatalog: true
+    agentsCatalog: true
+    agentOps: true
+    externalModels: true
+    mcpRegistry: true
+    autorag: true
+    guardrails: true
+    agentConfigManagement: true
+    genAiTracing: true
+    promptManagement: true
+    globalProjectPrompts: true
+    llmdTemplates: true
+    vLLMDeploymentOnMaaS: true
   hardwareProfileOrder: []
   notebookController:
     enabled: true
