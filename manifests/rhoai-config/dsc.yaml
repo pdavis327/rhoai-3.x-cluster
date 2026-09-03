@@ -12,6 +12,8 @@ spec:
       managementState: Managed
     dashboard:
       managementState: Managed
+    mcplifecycleoperator:
+      managementState: Managed
     feastoperator:
       managementState: Managed
     mlflowoperator:
