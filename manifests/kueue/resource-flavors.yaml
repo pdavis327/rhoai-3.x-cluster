@@ -1,0 +1,47 @@
+# ResourceFlavors — exported from cluster, owned by GitOps.
+# Wave 5: after Kueue operator (wave 1) and DataScienceCluster (wave 4).
+---
+apiVersion: kueue.x-k8s.io/v1beta2
+kind: ResourceFlavor
+metadata:
+  name: default-flavor
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+    opendatahub.io/managed: "false"
+spec: {}
+---
+apiVersion: kueue.x-k8s.io/v1beta2
+kind: ResourceFlavor
+metadata:
+  name: large-gpu
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+    opendatahub.io/managed: "false"
+spec:
+  nodeLabels:
+    gpu-class: large
+  tolerations:
+    - effect: NoSchedule
+      key: nvidia.com/gpu
+      operator: Exists
+    - effect: NoSchedule
+      key: largegpu
+      operator: Exists
+---
+apiVersion: kueue.x-k8s.io/v1beta2
+kind: ResourceFlavor
+metadata:
+  name: small-gpu
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+    opendatahub.io/managed: "false"
+spec:
+  nodeLabels:
+    gpu-class: small
+  tolerations:
+    - effect: NoSchedule
+      key: nvidia.com/gpu
+      operator: Exists
+    - effect: NoSchedule
+      key: smallgpu
+      operator: Exists

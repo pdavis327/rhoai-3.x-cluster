@@ -1,0 +1,103 @@
+# ClusterQueues — exported from cluster, owned by GitOps.
+# default is CPU-only (default-flavor). GPU workloads use large-gpu-cq / small-gpu-cq.
+---
+apiVersion: kueue.x-k8s.io/v1beta2
+kind: ClusterQueue
+metadata:
+  name: default
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+    opendatahub.io/managed: "false"
+spec:
+  namespaceSelector:
+    matchLabels:
+      kueue.openshift.io/managed: "true"
+  queueingStrategy: BestEffortFIFO
+  flavorFungibility:
+    whenCanBorrow: MayStopSearch
+    whenCanPreempt: TryNextFlavor
+  preemption:
+    borrowWithinCohort:
+      policy: Never
+    reclaimWithinCohort: Never
+    withinClusterQueue: Never
+  stopPolicy: None
+  resourceGroups:
+    - coveredResources:
+        - cpu
+        - memory
+      flavors:
+        - name: default-flavor
+          resources:
+            - name: cpu
+              nominalQuota: "93"
+            - name: memory
+              nominalQuota: 379773228Ki
+---
+apiVersion: kueue.x-k8s.io/v1beta2
+kind: ClusterQueue
+metadata:
+  name: large-gpu-cq
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+    opendatahub.io/managed: "false"
+spec:
+  namespaceSelector: {}
+  queueingStrategy: BestEffortFIFO
+  flavorFungibility:
+    whenCanBorrow: MayStopSearch
+    whenCanPreempt: TryNextFlavor
+  preemption:
+    borrowWithinCohort:
+      policy: Never
+    reclaimWithinCohort: Never
+    withinClusterQueue: Never
+  stopPolicy: None
+  resourceGroups:
+    - coveredResources:
+        - cpu
+        - memory
+        - nvidia.com/gpu
+      flavors:
+        - name: large-gpu
+          resources:
+            - name: cpu
+              nominalQuota: "80"
+            - name: memory
+              nominalQuota: 600Gi
+            - name: nvidia.com/gpu
+              nominalQuota: "10"
+---
+apiVersion: kueue.x-k8s.io/v1beta2
+kind: ClusterQueue
+metadata:
+  name: small-gpu-cq
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+    opendatahub.io/managed: "false"
+spec:
+  namespaceSelector: {}
+  queueingStrategy: BestEffortFIFO
+  flavorFungibility:
+    whenCanBorrow: MayStopSearch
+    whenCanPreempt: TryNextFlavor
+  preemption:
+    borrowWithinCohort:
+      policy: Never
+    reclaimWithinCohort: Never
+    withinClusterQueue: Never
+  stopPolicy: None
+  resourceGroups:
+    - coveredResources:
+        - cpu
+        - memory
+        - nvidia.com/gpu
+      flavors:
+        - name: small-gpu
+          resources:
+            - name: cpu
+              nominalQuota: "40"
+            - name: memory
+              nominalQuota: 140Gi
+            - name: nvidia.com/gpu
+              nominalQuota: "5"

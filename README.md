@@ -20,6 +20,7 @@ A separate **Helm charts repo** ([openshiftai-helmcharts](https://github.com/pda
 │    ├── operators/              Wave 0-2: Operator installs       │
 │    ├── gpu-config/             Wave 3: NFD + GPU config          │
 │    ├── rhoai-config/           Wave 4: DataScienceCluster        │
+│    ├── kueue/                  Wave 5: flavors + queues          │
 │    └── argocd-applications/    Child ArgoCD Applications         │
 │        └── helm-charts-repo.yaml                                 │
 │            ├── model-registry    → Helm chart                    │
@@ -51,6 +52,7 @@ A separate **Helm charts repo** ([openshiftai-helmcharts](https://github.com/pda
 | 2 | RHOAI Operator | OperatorGroup + Subscription (waits for dependency operators) |
 | 3 | NFD Instance, ClusterPolicy | GPU operator configuration |
 | 4 | DataScienceCluster, Telemetry ConfigMap | RHOAI operator configuration |
+| 5 | Kueue ResourceFlavors, ClusterQueues, LocalQueues | Unmanaged Kueue quota objects (`manifests/kueue/`) |
 
 ### Helm Chart Applications
 
@@ -230,6 +232,10 @@ rhoai-3.3-cluster/
 │   ├── rhoai-config/                         Wave 4: RHOAI config
 │   │   ├── dsc.yaml
 │   │   └── telemetry-cm.yaml
+│   ├── kueue/                                Wave 5: Unmanaged Kueue objects
+│   │   ├── resource-flavors.yaml
+│   │   ├── cluster-queues.yaml
+│   │   └── local-queues.yaml
 │   └── argocd-applications/                  Child ArgoCD Applications
 │       └── helm-charts-repo.yaml               model-registry, minio, modeldeploy, hardware-profiles
 ├── scripts/
