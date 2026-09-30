@@ -25,7 +25,8 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "1"
 spec:
-  channel: stable-v1.2
+  channel: stable-v1.3
+  startingCSV: kueue-operator.v1.3.2
   name: kueue-operator
   source: redhat-operators
   sourceNamespace: openshift-marketplace
