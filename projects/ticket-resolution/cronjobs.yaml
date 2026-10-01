@@ -89,11 +89,8 @@ spec:
           restartPolicy: Never
           schedulerName: default-scheduler
           securityContext:
-            fsGroup: 1000880000
             fsGroupChangePolicy: Always
-            runAsGroup: 1000880000
             runAsNonRoot: true
-            runAsUser: 1000880000
             seccompProfile:
               type: RuntimeDefault
           terminationGracePeriodSeconds: 30

@@ -49,7 +49,7 @@ spec:
       releaseName: minio
       values: |
         namespace: country-of-origin-predictor
-        image: docker.io/minio/minio:RELEASE.2024-12-18T13-15-44Z
+        image: quay.io/openshifttest/minio:latest
         username: minio
         password: minio123
         storageSize: 100Gi

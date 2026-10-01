@@ -1,0 +1,60 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: self-service-agent-db-migration
+  namespace: ticket-resolution
+  labels:
+    app.kubernetes.io/name: self-service-agent
+    app: self-service-agent-db-migration
+spec:
+  backoffLimit: 3
+  activeDeadlineSeconds: 300
+  template:
+    metadata:
+      labels:
+        app: self-service-agent-db-migration
+    spec:
+      restartPolicy: OnFailure
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: db-migration
+        image: quay.io/rh-ai-quickstart/self-service-agent-service:0.0.14-dev
+        imagePullPolicy: Always
+        command: ["python3", "shared-models/scripts/migrate.py"]
+        env:
+        - name: POSTGRES_HOST
+          valueFrom:
+            secretKeyRef:
+              name: pgvector
+              key: host
+        - name: POSTGRES_PORT
+          valueFrom:
+            secretKeyRef:
+              name: pgvector
+              key: port
+        - name: POSTGRES_DB
+          valueFrom:
+            secretKeyRef:
+              name: pgvector
+              key: dbname
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: pgvector
+              key: user
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: pgvector
+              key: password
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault

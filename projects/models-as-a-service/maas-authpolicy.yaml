@@ -1,0 +1,14 @@
+apiVersion: maas.opendatahub.io/v1alpha1
+kind: MaaSAuthPolicy
+metadata:
+  name: ai-dev-auth
+  namespace: models-as-a-service
+spec:
+  modelRefs:
+  - name: llama-3-2-1b-instruct
+    namespace: model-server
+  subjects:
+    groups:
+    - name: rhods-admins
+    - name: ai-developers
+    - name: system:authenticated
