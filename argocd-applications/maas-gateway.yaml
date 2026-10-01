@@ -31,3 +31,8 @@ spec:
       - ServerSideApply=true
       - SkipDryRunOnMissingResource=true
       - RespectIgnoreDifferences=true
+  ignoreDifferences:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    jsonPointers:
+    - /status
