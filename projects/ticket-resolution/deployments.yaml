@@ -1565,7 +1565,7 @@ spec:
         - name: TMP
           value: /opt/zammad/tmp
         - name: ZAMMAD_FQDN
-          value: APPS_DOMAIN
+          value: ssa-zammad-ticket-resolution.apps.ocp.cjrcx.sandbox1524.opentlc.com
         - name: ZAMMAD_HTTP_TYPE
           value: https
         - name: AUTOWIZARD_RELATIVE_PATH
@@ -1732,7 +1732,7 @@ spec:
         - name: TMP
           value: /opt/zammad/tmp
         - name: ZAMMAD_FQDN
-          value: APPS_DOMAIN
+          value: ssa-zammad-ticket-resolution.apps.ocp.cjrcx.sandbox1524.opentlc.com
         - name: ZAMMAD_HTTP_TYPE
           value: https
         - name: AUTOWIZARD_RELATIVE_PATH
@@ -1876,7 +1876,7 @@ spec:
         - name: TMP
           value: /opt/zammad/tmp
         - name: ZAMMAD_FQDN
-          value: APPS_DOMAIN
+          value: ssa-zammad-ticket-resolution.apps.ocp.cjrcx.sandbox1524.opentlc.com
         - name: ZAMMAD_HTTP_TYPE
           value: https
         - name: AUTOWIZARD_RELATIVE_PATH
@@ -1994,7 +1994,7 @@ spec:
         - name: TMP
           value: /opt/zammad/tmp
         - name: ZAMMAD_FQDN
-          value: APPS_DOMAIN
+          value: ssa-zammad-ticket-resolution.apps.ocp.cjrcx.sandbox1524.opentlc.com
         - name: ZAMMAD_HTTP_TYPE
           value: https
         - name: AUTOWIZARD_RELATIVE_PATH

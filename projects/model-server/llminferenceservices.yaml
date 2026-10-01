@@ -4,6 +4,7 @@ metadata:
   name: llama-3-2-1b-instruct
   namespace: model-server
   annotations:
+    security.opendatahub.io/enable-auth: 'false'
     opendatahub.io/connections: llama-3-2-1b-instruct
     opendatahub.io/genai-use-case: chat
     opendatahub.io/model-type: generative

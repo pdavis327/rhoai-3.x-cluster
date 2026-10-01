@@ -546,16 +546,16 @@ data:
       <p><a href="index.html">← Demo site home</a></p>
       <h1>Zammad Chat snippet</h1>
       <p>Copy the following code into your website before the closing <code>&lt;/body&gt;</code> tag:</p>
-      <pre><code>&lt;script src="https://APPS_DOMAIN/assets/chat/chat-no-jquery.min.js"&gt;&lt;/script&gt;
+      <pre><code>&lt;script src="https://ssa-zammad-ticket-resolution.apps.ocp.cjrcx.sandbox1524.opentlc.com/assets/chat/chat-no-jquery.min.js"&gt;&lt;/script&gt;
     &lt;script&gt;
     (function() { new ZammadChat({ fontSize: '12px', chatId: 1 }); })();
     &lt;/script&gt;</code></pre>
       <p><strong>Chat button missing?</strong> An agent must be <em>available for chat</em> in Zammad (Chat panel, online). See <a href="https://admin-docs.zammad.org/en/latest/channels/chat.html">Zammad Chat docs</a>. If the channel restricts origins, add this page&apos;s origin (scheme + host).</p>
       <hr style="margin: 2rem 0; border: none; border-top: 1px solid #ddd;">
       <h2>Live preview</h2>
-      <p>Scripts below load the widget from <code>https://APPS_DOMAIN</code> (debug log + browser console).</p>
+      <p>Scripts below load the widget from <code>https://ssa-zammad-ticket-resolution.apps.ocp.cjrcx.sandbox1524.opentlc.com</code> (debug log + browser console).</p>
       <pre id="demo-site-chat-debug"></pre>
-      <script src="https://APPS_DOMAIN/assets/chat/chat-no-jquery.min.js"></script>
+      <script src="https://ssa-zammad-ticket-resolution.apps.ocp.cjrcx.sandbox1524.opentlc.com/assets/chat/chat-no-jquery.min.js"></script>
       <script>
       (function() {
         var el = document.getElementById('demo-site-chat-debug');
@@ -579,7 +579,7 @@ data:
   default.conf: |
     server {
         listen 8080;
-        server_name APPS_DOMAIN;
+        server_name ssa-zammad-ticket-resolution.apps.ocp.cjrcx.sandbox1524.opentlc.com;
         # Route edge TLS; pod sees HTTP on :8080—avoid absolute redirects with wrong scheme/port.
         port_in_redirect off;
         absolute_redirect off;
@@ -1223,7 +1223,7 @@ data:
 
       <script>
       (function() {
-        var ZAMMAD_BASE = "https://APPS_DOMAIN";
+        var ZAMMAD_BASE = "https://ssa-zammad-ticket-resolution.apps.ocp.cjrcx.sandbox1524.opentlc.com";
         var HUB_CHANNEL = 'zammad-demo-hub';
         var SESSION_KEY = 'zammad-demo-last-user';
         var SHELL_URL = (function() {
@@ -1655,10 +1655,10 @@ data:
       </style>
     </head>
     <body>
-      <iframe id="zammad-frame" title="Zammad" src="https://APPS_DOMAIN/"></iframe>
+      <iframe id="zammad-frame" title="Zammad" src="https://ssa-zammad-ticket-resolution.apps.ocp.cjrcx.sandbox1524.opentlc.com/"></iframe>
       <script>
       (function() {
-        var ZAMMAD_BASE = "https://APPS_DOMAIN";
+        var ZAMMAD_BASE = "https://ssa-zammad-ticket-resolution.apps.ocp.cjrcx.sandbox1524.opentlc.com";
         var HUB_CHANNEL = 'zammad-demo-hub';
         var frame = document.getElementById('zammad-frame');
         var hub = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel(HUB_CHANNEL) : null;

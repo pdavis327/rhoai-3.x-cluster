@@ -14,7 +14,8 @@ metadata:
     opendatahub.io/image-display-name: Jupyter | PyTorch | CUDA | Python 3.12
     opendatahub.io/mlflow-instance: mlflow
     opendatahub.io/username: petedavis
-    openshift.io/description: ''
+    kubeflow-resource-stopped: 'true'
+    openshift.io/description: Stopped on this cluster because the single GPU is assigned to the MaaS llama model. Remove kubeflow-resource-stopped to start after scaling llama to 0.
     openshift.io/display-name: fine tuning
   labels:
     app: fine-tuning
