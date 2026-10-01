@@ -94,10 +94,9 @@ spec:
           name: country-of-origin-wb-storage
         - mountPath: /dev/shm
           name: shm
-        - mountPath: /etc/pki/tls/custom-certs/ca-bundle.crt
+        - mountPath: /etc/pki/tls/custom-certs
           name: trusted-ca
           readOnly: true
-          subPath: ca-bundle.crt
         - mountPath: /opt/app-root/pipeline-runtimes/
           name: runtime-images
         - mountPath: /opt/app-root/runtimes
