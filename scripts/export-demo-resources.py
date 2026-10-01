@@ -215,6 +215,11 @@ def sanitize(obj: dict) -> dict:
         elif key in {
             "ovn.kubernetes.io/hybrid-overlay-external-gw",
             "k8s.ovn.org/pod-networks",
+            "pv.kubernetes.io/bind-completed",
+            "pv.kubernetes.io/bound-by-controller",
+            "volume.beta.kubernetes.io/storage-provisioner",
+            "volume.kubernetes.io/storage-provisioner",
+            "volume.kubernetes.io/selected-node",
         }:
             drop_ann.append(key)
     for key in drop_ann:
