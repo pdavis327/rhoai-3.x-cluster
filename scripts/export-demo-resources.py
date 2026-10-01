@@ -336,19 +336,11 @@ def skip_workload(obj: dict) -> bool:
         "whisper-lab",
     }:
         return True
-    if kind == "PersistentVolumeClaim" and (
-        name.endswith("-storage")
-        or name in {"mariadb-dspa", "model-registry-mysql", "claim-devworkspace"}
-    ):
-        # Keep demo app disks that are not notebook/operator PVCs
-        if name in {
-            "genai-pgvector-storage",
-            "trustyai-service-pvc",
-            "minio-pvc",
-            "minio-storage-guardrail-detectors-claim",
-            "maas-postgresql-data",
-        } or name.startswith("data-self-service") or name.startswith("pg-data") or name.startswith("nim-pvc"):
-            return False
+    if kind == "PersistentVolumeClaim" and name in {
+        "mariadb-dspa",
+        "model-registry-mysql",
+        "claim-devworkspace",
+    }:
         return True
     if kind == "ServiceAccount":
         if name in {"mcp-viewer", "ocp-mcp", "mlflow-sa", "whisper-live-caption"}:

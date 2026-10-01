@@ -13,6 +13,7 @@ spec:
     path: projects/code-assistant
     directory:
       recurse: true
+      exclude: '{ogxserver.yaml,mcpserver.yaml}'
   destination:
     server: https://kubernetes.default.svc
     namespace: code-assistant

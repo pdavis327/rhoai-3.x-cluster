@@ -102,7 +102,7 @@ spec:
         - -c
         - "set -e\n# Function to resolve ${env.VAR} syntax to actual env var values\nresolve_env_var() {\n  local val=\"$1\"\
           \n  if [[ \"$val\" =~ ^\\$\\{env\\.([^}]+)\\}$ ]]; then\n    echo \"${!BASH_REMATCH[1]}\"\n  else\n    echo \"$val\"\
-          \n  fi\n}\nfor url_data in https://maas.apps.ocp.cloud.rhai-tmm.dev/prelude-maas/gemma4/v1/models#***REMOVED***\
+          \n  fi\n}\nfor url_data in http://llama-3-2-1b-instruct-kserve-workload-svc.model-server.svc.cluster.local:8000/v1/models\
           \ ; do\n  url_components=(${url_data//#/ })\n  url=${url_components[0]}\n  auth=$(resolve_env_var \"${url_components[1]}\"\
           )\n  echo \"Waiting for $url...\"\n  curl_options=(\"-ksf\" \"$url\")\n  if [[ -n \"$auth\" ]]; then\n    curl_options+=(\"\
           -H\" \"Authorization: Bearer $auth\")\n  fi\n  until curl \"${curl_options[@]}\"; do\n    echo \"Still waiting for\

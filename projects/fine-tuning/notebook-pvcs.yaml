@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: fine-tuning-storage
+  namespace: fine-tuning
+  labels:
+    opendatahub.io/dashboard: 'true'
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi

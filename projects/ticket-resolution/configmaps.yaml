@@ -354,8 +354,8 @@ data:
       - provider_id: gemma4
         provider_type: remote::vllm
         config:
-          base_url: https://maas.apps.ocp.cloud.rhai-tmm.dev/prelude-maas/gemma4/v1
-          api_token: ***REMOVED***
+          base_url: http://llama-3-2-1b-instruct-kserve-workload-svc.model-server.svc.cluster.local:8000/v1
+          api_token: local
           max_tokens: 2048
           tls_verify: false
       - provider_id: sentence-transformers
