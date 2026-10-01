@@ -31,3 +31,15 @@ spec:
       - ServerSideApply=true
       - SkipDryRunOnMissingResource=true
       - RespectIgnoreDifferences=true
+
+  ignoreDifferences:
+  - group: rbac.authorization.k8s.io
+    kind: Role
+    jqPathExpressions:
+    - .metadata.annotations["platform.opendatahub.io/instance.uid"]
+    - .metadata.annotations["platform.opendatahub.io/instance.generation"]
+  - group: rbac.authorization.k8s.io
+    kind: RoleBinding
+    jqPathExpressions:
+    - .metadata.annotations["platform.opendatahub.io/instance.uid"]
+    - .metadata.annotations["platform.opendatahub.io/instance.generation"]

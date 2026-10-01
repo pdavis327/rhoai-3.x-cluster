@@ -49,7 +49,7 @@ spec:
         - name: MLFLOW_TRACKING_AUTH
           value: kubernetes-namespaced
         - name: MLFLOW_TRACKING_URI
-          value: https://mlflow.redhat-ods-applications.svc:8443/mlflow
+          value: https://rh-ai.apps.ocp.cjrcx.sandbox1524.opentlc.com/mlflow
         image: image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/code-server-notebook:3.4
         imagePullPolicy: Always
         livenessProbe:
@@ -107,7 +107,7 @@ spec:
         - --auth-header-fields-enabled=true
         - --auth-header-user-field-name=X-Auth-Request-User
         - --auth-header-groups-field-name=X-Auth-Request-Groups
-        image: registry.redhat.io/rhoai/odh-kube-auth-proxy-rhel9@sha256:a059f453011028f7f18b3c7ec6406a958aa7a5b9bf6c67d084ea9d5d36d6c970
+        image: registry.redhat.io/rhoai/odh-kube-rbac-proxy-rhel9@sha256:b64105d53ab3f7d477652b2f29c90636fe272891cce71620ceadf0bf2eb3e323
         imagePullPolicy: Always
         livenessProbe:
           failureThreshold: 3

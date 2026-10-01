@@ -27,7 +27,19 @@ spec:
         factor: 2
         maxDuration: 3m
     syncOptions:
-      - CreateNamespace=true
-      - ServerSideApply=true
-      - SkipDryRunOnMissingResource=true
-      - RespectIgnoreDifferences=true
+    - CreateNamespace=true
+    - ServerSideApply=true
+    - SkipDryRunOnMissingResource=true
+    - RespectIgnoreDifferences=true
+
+  ignoreDifferences:
+  - group: kubeflow.org
+    kind: Notebook
+    jqPathExpressions:
+    - .metadata.annotations["notebooks.opendatahub.io/update-pending"]
+    - .metadata.annotations["notebooks.opendatahub.io/last-image-selection"]
+    - .spec.template.spec.containers[] | select(.name == "kube-rbac-proxy")
+    - .spec.template.spec.containers[].env[]? | select(.name == "MLFLOW_TRACKING_URI")
+    - .spec.template.spec.containers[].env[]? | select(.name == "MLFLOW_K8S_INTEGRATION")
+    - .spec.template.spec.containers[].env[]? | select(.name == "MLFLOW_TRACKING_AUTH")
+    - .status

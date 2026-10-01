@@ -63,3 +63,10 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - SkipDryRunOnMissingResource=true
+      - RespectIgnoreDifferences=true
+  ignoreDifferences:
+  - group: ''
+    kind: Namespace
+    jsonPointers:
+    - /metadata/labels
+    - /metadata/annotations

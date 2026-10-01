@@ -4,7 +4,9 @@ metadata:
   name: llama-3-2-1b-instruct
   namespace: model-server
   annotations:
-    security.opendatahub.io/enable-auth: 'false'
+    # Leave auth to MaaSAuthPolicy / maas-gateway-auth. enable-auth=false makes
+    # odh-model-controller attach an anonymous HTTPRoute AuthPolicy that overrides MaaS.
+    opendatahub.io/managed: 'false'
     opendatahub.io/connections: llama-3-2-1b-instruct
     opendatahub.io/genai-use-case: chat
     opendatahub.io/model-type: generative

@@ -5,8 +5,6 @@ metadata:
     notebooks.opendatahub.io/inject-auth: 'true'
     notebooks.opendatahub.io/last-image-selection: jupyter-pytorch-llmcompressor:2025.2
     notebooks.opendatahub.io/last-image-version-git-commit-selection: 8e73cac
-    notebooks.opendatahub.io/update-pending: '{v1.PodSpec}.Volumes[2].VolumeSource.ConfigMap.Items: [] != [{Key:ca-bundle.crt
-      Path:ca-bundle.crt Mode:<nil>}]'
     opendatahub.io/connections: country-of-origin-predictor/minio
     opendatahub.io/hardware-profile-name: default-profile
     opendatahub.io/hardware-profile-namespace: redhat-ods-applications
@@ -38,6 +36,12 @@ spec:
           value: /etc/pki/tls/custom-certs/ca-bundle.crt
         - name: SSL_CERT_FILE
           value: /etc/pki/tls/custom-certs/ca-bundle.crt
+        - name: MLFLOW_K8S_INTEGRATION
+          value: 'true'
+        - name: MLFLOW_TRACKING_AUTH
+          value: kubernetes-namespaced
+        - name: MLFLOW_TRACKING_URI
+          value: https://rh-ai.apps.ocp.cjrcx.sandbox1524.opentlc.com/mlflow
         - name: PIPELINES_SSL_SA_CERTS
           value: /etc/pki/tls/custom-certs/ca-bundle.crt
         - name: KF_PIPELINES_SSL_SA_CERTS
@@ -103,7 +107,7 @@ spec:
         - --secure-listen-address=0.0.0.0:8443
         - --upstream=http://127.0.0.1:8888/
         - --logtostderr=true
-        - --v=10
+        - --v=0
         - --proxy-endpoints-port=8444
         - --config-file=/etc/kube-rbac-proxy/config-file.yaml
         - --tls-cert-file=/etc/tls/private/tls.crt
@@ -111,7 +115,7 @@ spec:
         - --auth-header-fields-enabled=true
         - --auth-header-user-field-name=X-Auth-Request-User
         - --auth-header-groups-field-name=X-Auth-Request-Groups
-        image: registry.redhat.io/rhoai/odh-kube-auth-proxy-rhel9@sha256:4027ce7319cb9c9fbed1e736b440c0fa6e8bfeb5a4433a4c753402642a1839af
+        image: registry.redhat.io/rhoai/odh-kube-rbac-proxy-rhel9@sha256:b64105d53ab3f7d477652b2f29c90636fe272891cce71620ceadf0bf2eb3e323
         imagePullPolicy: Always
         livenessProbe:
           failureThreshold: 3

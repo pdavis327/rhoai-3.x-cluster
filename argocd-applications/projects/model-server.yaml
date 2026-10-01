@@ -31,3 +31,8 @@ spec:
       - ServerSideApply=true
       - SkipDryRunOnMissingResource=true
       - RespectIgnoreDifferences=true
+  ignoreDifferences:
+  - group: serving.kserve.io
+    kind: LLMInferenceService
+    jqPathExpressions:
+    - .status

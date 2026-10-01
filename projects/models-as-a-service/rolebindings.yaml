@@ -4,7 +4,7 @@ metadata:
   annotations:
     platform.opendatahub.io/instance.generation: '1'
     platform.opendatahub.io/instance.name: auth
-    platform.opendatahub.io/instance.uid: 944073d2-6880-4d25-b889-155791957431
+    platform.opendatahub.io/instance.uid: ebf24b3a-dbed-4034-a4b5-761e81ece492
     platform.opendatahub.io/type: OpenShift AI Self-Managed
     platform.opendatahub.io/version: 3.5.1
   labels:
