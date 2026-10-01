@@ -1,0 +1,108 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/component: listener
+    app.kubernetes.io/name: code-reviewer-pipeline
+  name: code-reviewer-pipeline-listener
+  namespace: code-reviewer
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: listener
+      app.kubernetes.io/name: code-reviewer-pipeline
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/restartedAt: '2026-06-16T14:33:59-04:00'
+      creationTimestamp: null
+      labels:
+        app.kubernetes.io/component: listener
+        app.kubernetes.io/instance: code-reviewer
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: code-reviewer-pipeline
+        helm.sh/chart: code-reviewer-pipeline-0.1.0
+    spec:
+      containers:
+      - env:
+        - name: K8S_NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+        - name: WORKER_IMAGE
+          value: quay.io/rh-ee-petdavis/code-reviewer-worker:5
+        - name: APP_CONFIGMAP
+          value: code-reviewer-pipeline-config
+        - name: APP_SECRET
+          value: code-reviewer-pipeline-secrets
+        - name: SERVICE_ACCOUNT
+          value: code-reviewer
+        - name: HANDLE_PUSH_EVENTS
+          value: 'false'
+        envFrom:
+        - configMapRef:
+            name: code-reviewer-pipeline-config
+        - secretRef:
+            name: code-reviewer-pipeline-secrets
+        image: quay.io/rh-ee-petdavis/code-reviewer-listener:1
+        imagePullPolicy: Always
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /health
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 20
+          successThreshold: 1
+          timeoutSeconds: 1
+        name: listener
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /ready
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          limits:
+            cpu: 250m
+            memory: 256Mi
+          requests:
+            cpu: 50m
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccount: code-reviewer
+      serviceAccountName: code-reviewer
+      terminationGracePeriodSeconds: 30

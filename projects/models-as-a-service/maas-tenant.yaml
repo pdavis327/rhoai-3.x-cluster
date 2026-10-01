@@ -1,0 +1,12 @@
+apiVersion: maas.opendatahub.io/v1alpha1
+kind: Tenant
+metadata:
+  annotations:
+    maas.opendatahub.io/deprecated-by: MaasTenantConfig
+    maas.opendatahub.io/migrated-to: default-tenant
+  name: default-tenant
+  namespace: models-as-a-service
+spec:
+  gatewayRef:
+    name: maas-default-gateway
+    namespace: openshift-ingress

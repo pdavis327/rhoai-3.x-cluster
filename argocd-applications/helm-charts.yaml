@@ -1,0 +1,64 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: model-registry
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/pdavis327/openshiftai-helmcharts.git
+    targetRevision: main
+    path: create-model-registry
+    helm:
+      releaseName: model-registry
+      values: |
+        namespace: rhoai-model-registries
+        mysql:
+          user: 'admin'
+          password: 'admin123'
+          database: 'coo-registry'
+          root_password: 'admin123'
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: rhoai-model-registries
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - SkipDryRunOnMissingResource=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: minio
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/pdavis327/openshiftai-helmcharts.git
+    targetRevision: main
+    path: minio
+    helm:
+      releaseName: minio
+      values: |
+        namespace: country-of-origin-predictor
+        username: minio
+        password: minio123
+        storageSize: 100Gi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: country-of-origin-predictor
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - SkipDryRunOnMissingResource=true

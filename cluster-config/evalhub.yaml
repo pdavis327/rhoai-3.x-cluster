@@ -1,0 +1,22 @@
+apiVersion: trustyai.opendatahub.io/v1
+kind: EvalHub
+metadata:
+  name: evalhub
+  namespace: redhat-ods-applications
+spec:
+  collections:
+  - safety-and-fairness-v1
+  - toxicity-and-ethical-principles
+  database:
+    maxIdleConns: 5
+    maxOpenConns: 25
+    type: sqlite
+  env:
+  - name: MLFLOW_TRACKING_URI
+    value: https://mlflow.redhat-ods-applications.svc:8443/mlflow
+  providers:
+  - lm-evaluation-harness
+  - garak
+  - guidellm
+  replicas: 1
+  tenancy: multi

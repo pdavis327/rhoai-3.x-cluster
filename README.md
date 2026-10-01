@@ -1,258 +1,103 @@
-# RHOAI 3.3 Cluster Configuration — ArgoCD GitOps
+# RHOAI demo GitOps
 
-This repository uses **OpenShift GitOps (ArgoCD)** to declaratively deploy and configure **Red Hat OpenShift AI (RHOAI) 3.3** and all of its operator dependencies on a blank OpenShift cluster.
+This repository is the source of truth for **demo projects and cluster demo config** on a cluster that already has Red Hat OpenShift AI installed.
 
-A separate **Helm charts repo** ([openshiftai-helmcharts](https://github.com/pdavis327/openshiftai-helmcharts)) contains reusable charts for workloads (model deployment, model registry, MinIO, hardware profiles). This repo references those charts via ArgoCD Applications defined in `manifests/argocd-applications/helm-charts-repo.yaml`.
+Platform install (operators, GPU stack, `DataScienceCluster`) lives in **[rhoai-argo](https://github.com/pdavis327/rhoai-argo)**.
 
-## Architecture
+This repo GitOps-deploys one MaaS model (`llama-3-2-1b-instruct` in `model-server`). Other InferenceServices and NIMs stay out of Git — create those from the OpenShift AI dashboard (or a dedicated demo repo) when you need them.
 
-```
-┌──────────────────────────────────────────────────────────────────┐
-│  rhoai-3.3-cluster (this repo)                                   │
-│                                                                  │
-│  bootstrap/          One-time setup (apply manually)             │
-│    ├── openshift-gitops-subscription.yaml                        │
-│    ├── argocd-cluster-admin.yaml                                 │
-│    ├── argocd-rbac.yaml                                          │
-│    └── argocd-application.yaml  ← root Application               │
-│                                                                  │
-│  manifests/          Managed by ArgoCD (root app syncs this)     │
-│    ├── operators/              Wave 0-2: Operator installs       │
-│    ├── gpu-config/             Wave 3: NFD + GPU config          │
-│    ├── rhoai-config/           Wave 4: DataScienceCluster        │
-│    ├── kueue/                  Wave 5: flavors + queues          │
-│    └── argocd-applications/    Child ArgoCD Applications         │
-│        └── helm-charts-repo.yaml                                 │
-│            ├── model-registry    → Helm chart                    │
-│            ├── minio             → Helm chart                    │
-│            ├── modeldeploy       → Helm chart                    │
-│            ├── hardware-profile  → Helm chart                    │
-│            └── hardware-profile-small → Helm chart               │
-│                                                                  │
-└────────────────────────┬─────────────────────────────────────────┘
-                         │ source.repoURL
-                         ▼
-┌──────────────────────────────────────────────────────────────────┐
-│  openshiftai-helmcharts (separate repo)                          │
-│    ├── model-registry/    ModelRegistry CR + MySQL               │
-│    ├── minio/             MinIO object storage                   │
-│    ├── models/modeldeploy/  InferenceService + ServingRuntime    │
-│    └── hardware-profile/  HardwareProfile for GPU scheduling     │
-└──────────────────────────────────────────────────────────────────┘
-```
+Dedicated demos that live elsewhere (not here):
 
-## What Gets Deployed
+- Credit card fraud
+- Lemonade Stand
 
-### Operators (via sync waves)
+## What this deploys
 
-| Sync Wave | Resources | Description |
-|-----------|-----------|-------------|
-| 0 | Namespaces | All operator namespaces |
-| 1 | OperatorGroups + Subscriptions | NFD, NVIDIA GPU, KMM, and all RHOAI dependency operators |
-| 2 | RHOAI Operator | OperatorGroup + Subscription (waits for dependency operators) |
-| 3 | NFD Instance, ClusterPolicy | GPU operator configuration |
-| 4 | DataScienceCluster, Telemetry ConfigMap | RHOAI operator configuration |
-| 5 | Kueue ResourceFlavors, ClusterQueues, LocalQueues | Unmanaged Kueue quota objects (`manifests/kueue/`) |
-
-### Helm Chart Applications
-
-| Application | Chart | Namespace | Description |
-|-------------|-------|-----------|-------------|
-| model-registry | `model-registry` | `rhoai-model-registries` | ModelRegistry CR + MySQL database |
-| minio | `minio` | `minio` | MinIO object storage for model artifacts |
-| modeldeploy | `models/modeldeploy` | `country-of-origin-predictor` | InferenceService + vLLM ServingRuntime |
-| hardware-profile | `hardware-profile` | `redhat-ods-applications` | GPU HardwareProfile (nvidia-l40s) |
-| hardware-profile-small | `hardware-profile` | `redhat-ods-applications` | Small GPU HardwareProfile (nvidia-l4-small) |
-
-### Operators Installed
-
-- Node Feature Discovery (NFD)
-- NVIDIA GPU Operator
-- Kernel Module Management (KMM)
-- Red Hat OpenShift AI (RHOAI)
-- JobSet Operator
-- Custom Metrics Autoscaler (KEDA)
-- Leader Worker Set
-- Red Hat Connectivity Link (Kuadrant)
-- Kueue
-- SR-IOV Network Operator
-- Red Hat OpenTelemetry
-- Tempo Operator
-- Cluster Observability Operator
+| Layer | Path | Examples |
+|-------|------|----------|
+| Cluster demo config | `cluster-config/` | HardwareProfiles, Kueue flavors/ClusterQueues, EvalHub, MLflow, MCP catalog |
+| Helm children | `argocd-applications/helm-charts.yaml` | model-registry, MinIO (in `country-of-origin-predictor`) |
+| MCP | `argocd-applications/mcp.yaml` | kubernetes-mcp-server in `mcp-demo` |
+| Demo projects | `projects/<namespace>/` | namespaces, workbenches, pipelines, MCP/OGX, apps |
 
 ## Prerequisites
 
-- OpenShift Container Platform 4.19+
-- `oc` CLI installed and logged in as `cluster-admin`
-- A GPU-capable node (or MachineSet) available in your cluster
-- This repository pushed to a Git server reachable by the cluster
+1. OpenShift GitOps is running (installed by rhoai-argo).
+2. OpenShift AI is healthy (`DataScienceCluster` Ready). Align DSC components in rhoai-argo with the demo set: AI Gateway / MaaS, MCP lifecycle, OGX, training operator, Kueue **Unmanaged**.
+3. GPU nodes labeled/tainted to match HardwareProfiles (`gpu-type=smallgpu`, `gpu-class=large|small`, `largegpu` / `smallgpu` taints). MachineSet helpers stay in rhoai-argo `hardware-profile/`.
+4. This repo is pushed to a URL Argo CD can fetch.
 
-## Quick Start
+## Quick start (new cluster)
 
-1. **Clone and push to your Git server**
+```bash
+# After rhoai-argo is synced and RHOAI is Ready:
+oc apply -f bootstrap/argocd-application.yaml
 
-   ```bash
-   git clone <this-repo>
-   cd rhoai-3.3-cluster
-   ```
-
-2. **Update the ArgoCD Application repo URL**
-
-   Edit `bootstrap/argocd-application.yaml` and replace the `repoURL` with your actual Git repository URL.
-
-3. **Run the bootstrap script**
-
-   ```bash
-   ./scripts/bootstrap.sh
-   ```
-
-   This installs OpenShift GitOps, grants it cluster-admin, and creates the root ArgoCD Application (`rhoai-cluster-config`).
-
-4. **Monitor progress**
-
-   ```bash
-   # Get the ArgoCD URL
-   oc get route openshift-gitops-server -n openshift-gitops -o jsonpath='{.spec.host}'
-
-   # Watch the Application status
-   oc get application rhoai-cluster-config -n openshift-gitops -w
-
-   # List all ArgoCD Applications
-   oc get applications -n openshift-gitops
-   ```
-
-## How It Works
-
-### Two-repo pattern
-
-- **This repo** (rhoai-3.3-cluster) is the GitOps repo. It contains cluster config, operator subscriptions, and ArgoCD Application definitions. The root Application `rhoai-cluster-config` syncs everything under `manifests/`.
-- **openshiftai-helmcharts** is the Helm charts repo. It contains reusable charts. The ArgoCD Applications in `helm-charts-repo.yaml` point at this repo and pass values inline so all configuration lives in the GitOps repo.
-
-### Parent-child relationship
-
-```
-rhoai-cluster-config (root app, syncs manifests/)
-  ├── operators, gpu-config, rhoai-config (direct manifests)
-  └── helm-charts-repo.yaml (creates child Applications)
-        ├── model-registry (syncs from Helm charts repo)
-        ├── minio
-        ├── modeldeploy
-        ├── hardware-profile
-        └── hardware-profile-small
+# Watch child apps
+oc get applications -n openshift-gitops
 ```
 
-Changes to `helm-charts-repo.yaml` are picked up by the **parent** app. Changes to the Helm charts are picked up by the **child** apps. Refresh the parent to update Application definitions; refresh a child to pick up chart changes.
+Root Application: `rhoai-demo-workloads` (syncs `argocd-applications/`).
 
-### Key design decisions
+Then fill placeholder secrets (not synced by Argo):
 
-- **HardwareProfile drives resources and tolerations.** The modeldeploy chart does not set `resources` or `tolerations` on the InferenceService. The ODH controller fills these from the HardwareProfile referenced in the `opendatahub.io/hardware-profile-name` annotation.
-- **ignoreDifferences** on the modeldeploy app suppresses diffs for fields the controller injects (`resources`, `tolerations`, `minReplicas`, `maxReplicas`).
-- **Replace=true** on the model-registry app avoids merge conflicts with operator-managed fields (e.g. `kubeRBACProxy` defaults injected by the model-registry-operator).
-- **Replicas are not managed in Git.** The InferenceService doesn't set `minReplicas`/`maxReplicas`; the API defaults to 1. Scaling is done outside Git (e.g. via the UI or `kubectl`), and `ignoreDifferences` prevents Argo from reverting manual scale changes.
+```bash
+# See secrets/placeholders/README.md
+oc apply -f secrets/placeholders/country-of-origin-predictor/secrets.yaml
+# edit CHANGE_ME values
+```
 
-## Adding a New Model
-
-1. Add a new Application block in `manifests/argocd-applications/helm-charts-repo.yaml`:
-
-   ```yaml
-   ---
-   apiVersion: argoproj.io/v1alpha1
-   kind: Application
-   metadata:
-     name: my-new-model
-     namespace: openshift-gitops
-   spec:
-     project: default
-     source:
-       repoURL: https://github.com/pdavis327/openshiftai-helmcharts.git
-       targetRevision: main
-       path: models/modeldeploy
-       helm:
-         releaseName: my-new-model
-         values: |
-           modelname: my-new-model
-           namespace: my-namespace
-           uri: "oci://quay.io/myorg/my-model:1.0"
-           runtime: my-new-model
-           hardwareProfileName: nvidia-l4-small
-     destination:
-       server: https://kubernetes.default.svc
-       namespace: my-namespace
-     ignoreDifferences:
-       - group: serving.kserve.io
-         kind: InferenceService
-         jsonPointers:
-           - /spec/predictor/model/resources
-           - /spec/predictor/tolerations
-           - /spec/predictor/minReplicas
-           - /spec/predictor/maxReplicas
-     syncPolicy:
-       automated:
-         prune: true
-         selfHeal: true
-   ```
-
-2. Commit and push. The parent app will create the new child Application on its next sync.
-
-## Manual Steps After Sync
-
-Some steps are cluster-specific and cannot be fully automated via GitOps:
-
-1. **GPU MachineSet** — Create a GPU worker MachineSet for your cloud provider. See [RHOAI Installation Workshop Step 2](https://github.com/redhat-ai-americas/rhoai-installation-workshop/blob/main/docs/02-enable-gpu-support.md).
-
-2. **GPU Node Taints** (optional) — Prevent non-GPU workloads from scheduling on GPU nodes. See [RHOAI Installation Workshop Step 5](https://github.com/redhat-ai-americas/rhoai-installation-workshop/blob/main/docs/05-configure-gpu-sharing-method.md).
-
-## Repository Structure
+## Repository layout
 
 ```
-rhoai-3.3-cluster/
-├── bootstrap/                              One-time setup (not managed by ArgoCD)
-│   ├── openshift-gitops-subscription.yaml    Install OpenShift GitOps operator
-│   ├── argocd-cluster-admin.yaml             Grant ArgoCD cluster-admin
-│   ├── argocd-rbac.yaml                      ArgoCD RBAC config
-│   └── argocd-application.yaml               Root Application (rhoai-cluster-config)
-├── manifests/                              Managed by ArgoCD
-│   ├── operators/                            Wave 0-2: Operator installs
-│   │   ├── nfd.yaml
-│   │   ├── nvidia-gpu.yaml
-│   │   ├── kmm.yaml
-│   │   ├── rhoai.yaml
-│   │   ├── jobset.yaml
-│   │   ├── custom-metrics-autoscaler.yaml
-│   │   ├── leader-worker-set.yaml
-│   │   ├── connectivity-link.yaml
-│   │   ├── kueue.yaml
-│   │   ├── sriov.yaml
-│   │   ├── opentelemetry.yaml
-│   │   ├── tempo.yaml
-│   │   └── cluster-observability.yaml
-│   ├── gpu-config/                           Wave 3: GPU operator config
-│   │   ├── nfd-instance.yaml
-│   │   └── clusterpolicy.yaml
-│   ├── rhoai-config/                         Wave 4: RHOAI config
-│   │   ├── dsc.yaml
-│   │   └── telemetry-cm.yaml
-│   ├── kueue/                                Wave 5: Unmanaged Kueue objects
-│   │   ├── resource-flavors.yaml
-│   │   ├── cluster-queues.yaml
-│   │   └── local-queues.yaml
-│   └── argocd-applications/                  Child ArgoCD Applications
-│       └── helm-charts-repo.yaml               model-registry, minio, modeldeploy, hardware-profiles
-├── scripts/
-│   ├── bootstrap.sh                          Bootstrap script
-│   └── create-gpu-machineset.sh              GPU MachineSet helper
-├── security/
-│   └── htpass/
-│       └── htpasscr.yaml                     HTPasswd identity provider
+rhoai-3.x-cluster/
+├── bootstrap/argocd-application.yaml   # apply once: demo root app
+├── argocd-applications/                # child Applications
+│   ├── cluster-config.yaml
+│   ├── helm-charts.yaml
+│   ├── mcp.yaml
+│   └── projects/*.yaml
+├── helm-values/kubernetes-mcp/values.yaml
+├── cluster-config/
+├── projects/<namespace>/
+├── secrets/placeholders/
+├── scripts/export-demo-resources.sh
 └── README.md
 ```
 
-## Troubleshooting
+Parent/child sync: change Application YAML → refresh **rhoai-demo-workloads**. Change project YAML → refresh the `demo-<namespace>` child.
 
-| Problem | Cause | Fix |
-|---------|-------|-----|
-| Child app shows OutOfSync for resources/tolerations | Controller injects fields from HardwareProfile | Add `ignoreDifferences` for those jsonPointers |
-| "Cannot use both oauthProxy and kubeRBACProxy" | Operator defaults inject `kubeRBACProxy`; chart had `oauthProxy` | Use `kubeRBACProxy` in chart to match operator defaults |
-| "already exists" on sync | Manually-created resources conflict with chart resources | Delete existing resources first, or use `Replace=true` syncOption |
-| Child app not picking up changes to helm-charts-repo.yaml | Changes are in the parent repo, not the charts repo | Refresh/sync the **parent** app (rhoai-cluster-config) |
-| `syncOptions: null` validation error | `syncOptions:` key with no list value | Use `syncOptions: []` or remove the key entirely |
+## Demos included
+
+| Namespace | Notes |
+|-----------|--------|
+| `country-of-origin-predictor` | Workbench, DSPA, MinIO via Helm (deploy models from the UI) |
+| `whisper-demo` | Workbench, live-caption app, Kueue LocalQueues |
+| `code-assistant` | code-server, NemoGuardrails, TrustyAI, OpenShift MCP, OGX playground |
+| `ray-workshop` | Ray lab workbench + LocalQueues |
+| `fine-tuning` / `gemma4` | Workbenches |
+| `mcp-demo` | Kubernetes MCP server (Helm/OCI chart) |
+| `models-as-a-service` / `ai-tenants` / `models-as-service-db` | MaaS tenant, subscription, and DB |
+| `model-server` | MaaS `LLMInferenceService` + `MaaSModelRef` for llama-3.2-1b |
+| `ticket-resolution` | Self-service agent + Zammad (rendered YAML) |
+| `code-reviewer` | Pipeline listener |
+| `rhoai-model-registries` | Helm chart only |
+
+## Data that does **not** migrate with Git
+
+YAML recreates objects, not disks. Notebook home directories, PVC contents, and MinIO objects are empty on a new cluster.
+
+Strings still containing `APPS_DOMAIN` (ticket-resolution Zammad widget, code-reviewer `LLM_BASE_URL`, code-assistant llama-stack `base_url`) are the old cluster’s application route host. After sync, replace them with `apps.<your-cluster-domain>`.
+
+## Re-export from a cluster
+
+```bash
+oc login ...   # cluster-admin
+./scripts/export-demo-resources.sh
+```
+
+The exporter skips KServe InferenceServices, serving runtimes, GuardrailsOrchestrator (lemonade-stand), and dedicated fraud/lemonade namespaces. It does export the MaaS llama model in `model-server`. Review the diff before committing.
+
+## Hardware profiles vs Kueue
+
+Kueue is **Unmanaged** in the DSC. Flavors and ClusterQueues are in `cluster-config/kueue/`. LocalQueues are in `projects/whisper-demo` and `projects/ray-workshop`. HardwareProfiles are in `cluster-config/hardware-profiles/`.

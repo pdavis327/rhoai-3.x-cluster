@@ -1,0 +1,7 @@
+apiVersion: pipelines.kubeflow.org/v2beta1
+kind: Pipeline
+metadata:
+  name: coo-predictor-pipeline
+  namespace: country-of-origin-predictor
+spec:
+  displayName: coo-predictor-pipeline

@@ -1,19 +1,21 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: rhoai-demo-workloads
+  name: demo-maas-gateway
   namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   project: default
   source:
     repoURL: https://github.com/pdavis327/rhoai-3.x-cluster
     targetRevision: main
-    path: argocd-applications
+    path: cluster-config/maas-gateway
     directory:
       recurse: true
   destination:
     server: https://kubernetes.default.svc
-    namespace: openshift-gitops
+    namespace: openshift-ingress
   syncPolicy:
     automated:
       prune: true

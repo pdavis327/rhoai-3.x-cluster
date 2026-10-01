@@ -1,19 +1,21 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: rhoai-demo-workloads
+  name: demo-code-assistant
   namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: '2'
 spec:
   project: default
   source:
     repoURL: https://github.com/pdavis327/rhoai-3.x-cluster
     targetRevision: main
-    path: argocd-applications
+    path: projects/code-assistant
     directory:
       recurse: true
   destination:
     server: https://kubernetes.default.svc
-    namespace: openshift-gitops
+    namespace: code-assistant
   syncPolicy:
     automated:
       prune: true
@@ -25,7 +27,7 @@ spec:
         factor: 2
         maxDuration: 3m
     syncOptions:
-      - CreateNamespace=false
-      - ServerSideApply=true
-      - SkipDryRunOnMissingResource=true
-      - RespectIgnoreDifferences=true
+    - CreateNamespace=true
+    - ServerSideApply=true
+    - SkipDryRunOnMissingResource=true
+    - RespectIgnoreDifferences=true

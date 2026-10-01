@@ -1,0 +1,34 @@
+# LocalQueues for whisper-demo. ClusterQueues live in cluster-config/kueue/.
+---
+apiVersion: kueue.x-k8s.io/v1beta2
+kind: LocalQueue
+metadata:
+  name: default
+  namespace: whisper-demo
+  annotations:
+    opendatahub.io/managed: "false"
+spec:
+  clusterQueue: default
+  stopPolicy: None
+---
+apiVersion: kueue.x-k8s.io/v1beta2
+kind: LocalQueue
+metadata:
+  name: large-gpu
+  namespace: whisper-demo
+  annotations:
+    opendatahub.io/managed: "false"
+spec:
+  clusterQueue: large-gpu-cq
+  stopPolicy: None
+---
+apiVersion: kueue.x-k8s.io/v1beta2
+kind: LocalQueue
+metadata:
+  name: small-gpu
+  namespace: whisper-demo
+  annotations:
+    opendatahub.io/managed: "false"
+spec:
+  clusterQueue: small-gpu-cq
+  stopPolicy: None

@@ -1,0 +1,86 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  annotations:
+    maas.opendatahub.io/aitenant-name: models-as-a-service
+    maas.opendatahub.io/aitenant-namespace: ai-tenants
+  labels:
+    ai-gateway.opendatahub.io/tenant: models-as-a-service
+    app.kubernetes.io/managed-by: maas-controller
+    app.kubernetes.io/part-of: modelsasservice
+    maas.opendatahub.io/managed-by-aitenant: 'true'
+    maas.opendatahub.io/tenant-name: models-as-a-service
+    maas.opendatahub.io/tenant-namespace: models-as-a-service
+  name: aitenant-models-as-a-service-tenant-admin
+  namespace: models-as-a-service
+rules:
+- apiGroups:
+  - maas.opendatahub.io
+  resources:
+  - maasauthpolicies
+  - maassubscriptions
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - maas.opendatahub.io
+  resourceNames:
+  - default-tenant
+  resources:
+  - maastenantconfigs
+  verbs:
+  - get
+  - update
+  - patch
+- apiGroups:
+  - maas.opendatahub.io
+  resources:
+  - maasmodelrefs
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  annotations:
+    platform.opendatahub.io/instance.generation: '1'
+    platform.opendatahub.io/instance.name: auth
+    platform.opendatahub.io/instance.uid: 944073d2-6880-4d25-b889-155791957431
+    platform.opendatahub.io/type: OpenShift AI Self-Managed
+    platform.opendatahub.io/version: 3.5.1
+  labels:
+    platform.opendatahub.io/part-of: auth
+  name: data-science-admingroup-maas-role
+  namespace: models-as-a-service
+rules:
+- apiGroups:
+  - maas.opendatahub.io
+  resources:
+  - maassubscriptions
+  verbs:
+  - get
+  - watch
+  - list
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - maas.opendatahub.io
+  resources:
+  - maasauthpolicies
+  verbs:
+  - get
+  - watch
+  - list
+  - create
+  - update
+  - patch
+  - delete

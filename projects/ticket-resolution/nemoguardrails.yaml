@@ -1,0 +1,17 @@
+apiVersion: trustyai.opendatahub.io/v1alpha1
+kind: NemoGuardrails
+metadata:
+  labels:
+    app.kubernetes.io/instance: nemo-guardrails
+    app.kubernetes.io/managed-by: Helm
+  name: nemo-guardrails
+  namespace: ticket-resolution
+spec:
+  env:
+  - name: OPENAI_API_KEY
+    value: fake
+  nemoConfigs:
+  - configMaps:
+    - nemo-config
+    name: nemo-config
+  replicas: 1

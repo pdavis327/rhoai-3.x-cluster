@@ -1,0 +1,20 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  annotations:
+    openshift.io/host.generated: 'true'
+  labels:
+    app.kubernetes.io/component: listener
+    app.kubernetes.io/name: code-reviewer-pipeline
+  name: code-reviewer-pipeline-listener
+  namespace: code-reviewer
+spec:
+  port:
+    targetPort: 8080
+  tls:
+    insecureEdgeTerminationPolicy: Redirect
+    termination: edge
+  to:
+    kind: Service
+    name: code-reviewer-pipeline-listener
+    weight: 100

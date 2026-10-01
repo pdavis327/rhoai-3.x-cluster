@@ -1,0 +1,23 @@
+apiVersion: mlflow.opendatahub.io/v1
+kind: MLflow
+metadata:
+  name: mlflow
+  namespace: redhat-ods-applications
+spec:
+  artifactsDestination: s3://rhoai/mlflow/artifacts
+  backendStoreUri: sqlite:////mlflow/mlflow.db
+  envFrom:
+  - secretRef:
+      name: mlflow-artifact-s3
+  migration:
+    mode: Automatic
+  replicas: 1
+  serveArtifacts: true
+  serviceAccountName: mlflow-sa
+  storage:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 50Gi
+  workers: 1

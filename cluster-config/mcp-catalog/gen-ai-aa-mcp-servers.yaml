@@ -1,0 +1,11 @@
+apiVersion: v1
+data:
+  Kubernetes-MCP-Server: |
+    {
+      "url": "http://ocp-mcp-server.mcp-demo.svc.cluster.local:8080/mcp",
+      "description": "A powerful and flexible Kubernetes Model Context Protocol (MCP) server implementation with support for Kubernetes and OpenShift."
+    }
+kind: ConfigMap
+metadata:
+  name: gen-ai-aa-mcp-servers
+  namespace: redhat-ods-applications

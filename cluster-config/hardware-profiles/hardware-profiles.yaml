@@ -1,0 +1,261 @@
+apiVersion: infrastructure.opendatahub.io/v1
+kind: HardwareProfile
+metadata:
+  annotations:
+    opendatahub.io/dashboard-feature-visibility: '[]'
+    opendatahub.io/disabled: 'false'
+    opendatahub.io/display-name: cpu-local-queue
+    opendatahub.io/modified-date: '2026-07-13T16:54:02.116Z'
+  name: cpu-local-queue
+  namespace: redhat-ods-applications
+spec:
+  identifiers:
+  - defaultCount: 2
+    displayName: CPU
+    identifier: cpu
+    maxCount: 4
+    minCount: 1
+    resourceType: CPU
+  - defaultCount: 8Gi
+    displayName: Memory
+    identifier: memory
+    maxCount: 16Gi
+    minCount: 4Gi
+    resourceType: Memory
+  scheduling:
+    kueue:
+      localQueueName: default
+      priorityClass: None
+    type: Queue
+---
+apiVersion: infrastructure.opendatahub.io/v1
+kind: HardwareProfile
+metadata:
+  annotations:
+    opendatahub.io/dashboard-feature-visibility: '[]'
+    opendatahub.io/description: This profile offers 2 CPUs and 4 GiB of memory. You can customize these resources up to 4
+      CPUs and 8 GiB of memory.
+    opendatahub.io/disabled: 'false'
+    opendatahub.io/display-name: default-profile
+    opendatahub.io/managed: 'false'
+  labels:
+    app.kubernetes.io/part-of: hardwareprofile
+    app.opendatahub.io/hardwareprofile: 'true'
+  name: default-profile
+  namespace: redhat-ods-applications
+spec:
+  identifiers:
+  - defaultCount: 2
+    displayName: CPU
+    identifier: cpu
+    maxCount: 4
+    minCount: 1
+    resourceType: CPU
+  - defaultCount: 4Gi
+    displayName: Memory
+    identifier: memory
+    maxCount: 8Gi
+    minCount: 2Gi
+    resourceType: Memory
+---
+apiVersion: infrastructure.opendatahub.io/v1
+kind: HardwareProfile
+metadata:
+  annotations:
+    opendatahub.io/dashboard-feature-visibility: '[]'
+    opendatahub.io/disabled: 'false'
+    opendatahub.io/display-name: nvidia-l4-small
+  name: nvidia-l4-small
+  namespace: redhat-ods-applications
+spec:
+  identifiers:
+  - defaultCount: 3
+    displayName: CPU
+    identifier: cpu
+    maxCount: 4
+    minCount: 2
+    resourceType: CPU
+  - defaultCount: 10Gi
+    displayName: Memory
+    identifier: memory
+    maxCount: 12Gi
+    minCount: 6Gi
+    resourceType: Memory
+  - defaultCount: 1
+    displayName: Accelerator
+    identifier: nvidia.com/gpu
+    maxCount: 1
+    minCount: 1
+    resourceType: Accelerator
+  scheduling:
+    node:
+      nodeSelector:
+        gpu-type: smallgpu
+      tolerations:
+      - effect: NoSchedule
+        key: nvidia.com/gpu
+        operator: Exists
+      - effect: NoSchedule
+        key: smallgpu
+        operator: Exists
+    type: Node
+---
+apiVersion: infrastructure.opendatahub.io/v1
+kind: HardwareProfile
+metadata:
+  annotations:
+    opendatahub.io/dashboard-feature-visibility: '[]'
+    opendatahub.io/description: non-kueue
+    opendatahub.io/disabled: 'false'
+    opendatahub.io/display-name: nvidia-l4-small-taints
+    opendatahub.io/modified-date: '2026-08-24T19:31:16.745Z'
+  name: nvidia-l4-small-taints
+  namespace: redhat-ods-applications
+spec:
+  identifiers:
+  - defaultCount: '4'
+    displayName: CPU
+    identifier: cpu
+    maxCount: '8'
+    minCount: 2
+    resourceType: CPU
+  - defaultCount: 16Gi
+    displayName: Memory
+    identifier: memory
+    maxCount: 32Gi
+    minCount: 8Gi
+    resourceType: Memory
+  - defaultCount: 1
+    displayName: Accelerator
+    identifier: nvidia.com/gpu
+    maxCount: 1
+    minCount: 1
+    resourceType: Accelerator
+  scheduling:
+    node:
+      nodeSelector: {}
+      tolerations:
+      - effect: NoSchedule
+        key: smallgpu
+        operator: Exists
+      - effect: NoSchedule
+        key: nvidia.com/gpu
+        operator: Exists
+    type: Node
+---
+apiVersion: infrastructure.opendatahub.io/v1
+kind: HardwareProfile
+metadata:
+  annotations:
+    opendatahub.io/dashboard-feature-visibility: '[]'
+    opendatahub.io/description: LocalQueue = small-gpu
+    opendatahub.io/disabled: 'false'
+    opendatahub.io/display-name: nvidia-l4-smallgpu
+    opendatahub.io/modified-date: '2026-08-24T19:33:25.993Z'
+  name: nvidia-l4-smallgpu
+  namespace: redhat-ods-applications
+spec:
+  identifiers:
+  - defaultCount: 2
+    displayName: CPU
+    identifier: cpu
+    maxCount: 4
+    minCount: 1
+    resourceType: CPU
+  - defaultCount: 4Gi
+    displayName: Memory
+    identifier: memory
+    maxCount: 8Gi
+    minCount: 2Gi
+    resourceType: Memory
+  - defaultCount: 1
+    displayName: NVIDIA GPU
+    identifier: nvidia.com/gpu
+    maxCount: 1
+    minCount: 1
+    resourceType: Accelerator
+  scheduling:
+    kueue:
+      localQueueName: small-gpu
+      priorityClass: None
+    type: Queue
+---
+apiVersion: infrastructure.opendatahub.io/v1
+kind: HardwareProfile
+metadata:
+  annotations:
+    opendatahub.io/dashboard-feature-visibility: '[]'
+    opendatahub.io/description: non-kueue
+    opendatahub.io/disabled: 'false'
+    opendatahub.io/display-name: nvidia-l40s
+    opendatahub.io/modified-date: '2026-08-24T19:10:16.806Z'
+  name: nvidia-l40s
+  namespace: redhat-ods-applications
+spec:
+  identifiers:
+  - defaultCount: 12
+    displayName: CPU
+    identifier: cpu
+    maxCount: 16
+    minCount: 8
+    resourceType: CPU
+  - defaultCount: 48Gi
+    displayName: Memory
+    identifier: memory
+    maxCount: 64Gi
+    minCount: 32Gi
+    resourceType: Memory
+  - defaultCount: 1
+    displayName: Accelerator
+    identifier: nvidia.com/gpu
+    maxCount: 1
+    minCount: 1
+    resourceType: Accelerator
+  scheduling:
+    node:
+      nodeSelector: {}
+      tolerations:
+      - effect: NoSchedule
+        key: nvidia.com/gpu
+        operator: Exists
+      - effect: NoSchedule
+        key: largegpu
+        operator: Exists
+    type: Node
+---
+apiVersion: infrastructure.opendatahub.io/v1
+kind: HardwareProfile
+metadata:
+  annotations:
+    opendatahub.io/dashboard-feature-visibility: '[]'
+    opendatahub.io/description: LocalQueue = large-gpu
+    opendatahub.io/disabled: 'false'
+    opendatahub.io/display-name: nvidia-l40s-largegpu
+    opendatahub.io/modified-date: '2026-08-24T20:32:43.275Z'
+  name: nvidia-l40s-largegpu
+  namespace: redhat-ods-applications
+spec:
+  identifiers:
+  - defaultCount: '12'
+    displayName: CPU
+    identifier: cpu
+    maxCount: '16'
+    minCount: '8'
+    resourceType: CPU
+  - defaultCount: 48Gi
+    displayName: Memory
+    identifier: memory
+    maxCount: 64Gi
+    minCount: 32Gi
+    resourceType: Memory
+  - defaultCount: 1
+    displayName: NVIDIA GPU
+    identifier: nvidia.com/gpu
+    maxCount: 1
+    minCount: 1
+    resourceType: Accelerator
+  scheduling:
+    kueue:
+      localQueueName: large-gpu
+      priorityClass: None
+    type: Queue

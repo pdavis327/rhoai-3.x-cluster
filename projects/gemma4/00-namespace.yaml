@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gemma4
+  labels:
+    opendatahub.io/dashboard: 'true'
+    modelmesh-enabled: 'false'
+  annotations:
+    openshift.io/display-name: gemma4
+    openshift.io/description: ''

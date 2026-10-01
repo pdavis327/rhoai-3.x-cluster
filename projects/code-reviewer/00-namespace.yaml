@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: code-reviewer
+  annotations:
+    openshift.io/display-name: ''
+    openshift.io/description: ''

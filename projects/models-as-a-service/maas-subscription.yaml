@@ -1,0 +1,19 @@
+apiVersion: maas.opendatahub.io/v1alpha1
+kind: MaaSSubscription
+metadata:
+  name: ai-dev-sub
+  namespace: models-as-a-service
+  annotations:
+    openshift.io/display-name: ai-dev-sub
+spec:
+  modelRefs:
+  - name: llama-3-2-1b-instruct
+    namespace: model-server
+    tokenRateLimits:
+    - limit: 10000
+      window: 1s
+  owner:
+    groups:
+    - name: ai-developers
+    - name: rhods-admins
+  priority: 1

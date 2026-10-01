@@ -1,0 +1,18 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/instance: code-reviewer
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: code-reviewer-pipeline
+    helm.sh/chart: code-reviewer-pipeline-0.1.0
+  name: code-reviewer-pipeline-job-manager
+  namespace: code-reviewer
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: code-reviewer-pipeline-job-manager
+subjects:
+- kind: ServiceAccount
+  name: code-reviewer
+  namespace: code-reviewer

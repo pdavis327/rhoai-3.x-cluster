@@ -1,0 +1,594 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app.kubernetes.io/name: pgvector
+  name: pgvector
+  namespace: ticket-resolution
+spec:
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Retain
+    whenScaled: Retain
+  podManagementPolicy: OrderedReady
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: self-service-agent
+      app.kubernetes.io/name: pgvector
+  serviceName: ''
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app.kubernetes.io/instance: self-service-agent
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: pgvector
+        app.kubernetes.io/version: 1.16.0
+        helm.sh/chart: pgvector-0.1.0
+    spec:
+      containers:
+      - args:
+        - -c
+        - max_connections=200
+        env:
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              key: user
+              name: pgvector
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: pgvector
+        - name: POSTGRES_PORT
+          valueFrom:
+            secretKeyRef:
+              key: port
+              name: pgvector
+        - name: POSTGRES_DBNAME
+          valueFrom:
+            secretKeyRef:
+              key: dbname
+              name: pgvector
+        image: docker.io/pgvector/pgvector:pg17
+        imagePullPolicy: IfNotPresent
+        name: pgvector
+        ports:
+        - containerPort: 5432
+          name: http
+          protocol: TCP
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - "for db in \"$POSTGRES_DBNAME\" \"llama_agents\" \"llama_responses\"; do\n  pg_isready -U \"$POSTGRES_USER\"\
+              \ -d \"$db\" -h 127.0.0.1 -p \"$POSTGRES_PORT\" || exit 1\ndone\n"
+          failureThreshold: 3
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /docker-entrypoint-initdb.d
+          name: initdb-volume
+        - mountPath: /var/lib/postgresql
+          name: pg-data
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      serviceAccount: default
+      serviceAccountName: default
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: pgvector-initsql
+        name: initdb-volume
+  updateStrategy:
+    rollingUpdate:
+      partition: 0
+    type: RollingUpdate
+  volumeClaimTemplates:
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      creationTimestamp: null
+      name: pg-data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 5Gi
+      volumeMode: Filesystem
+    status:
+      phase: Pending
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: master
+    app.kubernetes.io/component: master
+    app.kubernetes.io/name: elasticsearch
+  name: self-service-agent-elasticsearch-master
+  namespace: ticket-resolution
+spec:
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Retain
+    whenScaled: Retain
+  podManagementPolicy: Parallel
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: master
+      app.kubernetes.io/instance: self-service-agent
+      app.kubernetes.io/name: elasticsearch
+  serviceName: self-service-agent-elasticsearch-master-hl
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: master
+        app.kubernetes.io/component: master
+        app.kubernetes.io/instance: self-service-agent
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: elasticsearch
+        app.kubernetes.io/version: 8.18.0
+        helm.sh/chart: elasticsearch-21.6.3
+    spec:
+      affinity: {}
+      automountServiceAccountToken: false
+      containers:
+      - env:
+        - name: BITNAMI_DEBUG
+          value: 'false'
+        - name: MY_POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: ELASTICSEARCH_IS_DEDICATED_NODE
+          value: 'no'
+        - name: ELASTICSEARCH_NODE_ROLES
+          value: master
+        - name: ELASTICSEARCH_TRANSPORT_PORT_NUMBER
+          value: '9300'
+        - name: ELASTICSEARCH_HTTP_PORT_NUMBER
+          value: '9200'
+        - name: ELASTICSEARCH_CLUSTER_NAME
+          value: zammad
+        - name: ELASTICSEARCH_HEAP_SIZE
+          value: 512m
+        image: docker.io/bitnamilegacy/elasticsearch:8.18.0-debian-12-r2
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 5
+          initialDelaySeconds: 180
+          periodSeconds: 10
+          successThreshold: 1
+          tcpSocket:
+            port: rest-api
+          timeoutSeconds: 5
+        name: elasticsearch
+        ports:
+        - containerPort: 9200
+          name: rest-api
+          protocol: TCP
+        - containerPort: 9300
+          name: transport
+          protocol: TCP
+        readinessProbe:
+          exec:
+            command:
+            - /opt/bitnami/scripts/elasticsearch/healthcheck.sh
+          failureThreshold: 5
+          initialDelaySeconds: 90
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        resources:
+          limits:
+            cpu: 750m
+            ephemeral-storage: 2Gi
+            memory: 1536Mi
+          requests:
+            cpu: 500m
+            ephemeral-storage: 50Mi
+            memory: 1Gi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          privileged: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /tmp
+          name: empty-dir
+          subPath: tmp-dir
+        - mountPath: /opt/bitnami/elasticsearch/config
+          name: empty-dir
+          subPath: app-conf-dir
+        - mountPath: /opt/bitnami/elasticsearch/tmp
+          name: empty-dir
+          subPath: app-tmp-dir
+        - mountPath: /opt/bitnami/elasticsearch/logs
+          name: empty-dir
+          subPath: app-logs-dir
+        - mountPath: /opt/bitnami/elasticsearch/plugins
+          name: empty-dir
+          subPath: app-plugins-dir
+        - mountPath: /bitnami/elasticsearch
+          name: empty-dir
+          subPath: app-volume-dir
+        - mountPath: /bitnami/elasticsearch/data
+          name: data
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        fsGroupChangePolicy: Always
+      serviceAccount: self-service-agent-elasticsearch-master
+      serviceAccountName: self-service-agent-elasticsearch-master
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - emptyDir: {}
+        name: empty-dir
+  updateStrategy:
+    type: RollingUpdate
+  volumeClaimTemplates:
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      creationTimestamp: null
+      name: data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 8Gi
+      volumeMode: Filesystem
+    status:
+      phase: Pending
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app.kubernetes.io/component: primary
+    app.kubernetes.io/name: postgresql
+  name: self-service-agent-postgresql
+  namespace: ticket-resolution
+spec:
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Retain
+    whenScaled: Retain
+  podManagementPolicy: OrderedReady
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: primary
+      app.kubernetes.io/instance: self-service-agent
+      app.kubernetes.io/name: postgresql
+  serviceName: self-service-agent-postgresql-hl
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app.kubernetes.io/component: primary
+        app.kubernetes.io/instance: self-service-agent
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: postgresql
+        app.kubernetes.io/version: 17.5.0
+        helm.sh/chart: postgresql-16.7.21
+      name: self-service-agent-postgresql
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/component: primary
+                  app.kubernetes.io/instance: self-service-agent
+                  app.kubernetes.io/name: postgresql
+              topologyKey: kubernetes.io/hostname
+            weight: 1
+      automountServiceAccountToken: false
+      containers:
+      - env:
+        - name: BITNAMI_DEBUG
+          value: 'false'
+        - name: POSTGRESQL_PORT_NUMBER
+          value: '5432'
+        - name: POSTGRESQL_VOLUME_DIR
+          value: /bitnami/postgresql
+        - name: PGDATA
+          value: /bitnami/postgresql/data
+        - name: POSTGRES_USER
+          value: zammad
+        - name: POSTGRES_PASSWORD_FILE
+          value: /opt/bitnami/postgresql/secrets/password
+        - name: POSTGRES_POSTGRES_PASSWORD_FILE
+          value: /opt/bitnami/postgresql/secrets/postgres-password
+        - name: POSTGRES_DATABASE
+          value: zammad_production
+        - name: POSTGRESQL_ENABLE_LDAP
+          value: 'no'
+        - name: POSTGRESQL_ENABLE_TLS
+          value: 'no'
+        - name: POSTGRESQL_LOG_HOSTNAME
+          value: 'false'
+        - name: POSTGRESQL_LOG_CONNECTIONS
+          value: 'false'
+        - name: POSTGRESQL_LOG_DISCONNECTIONS
+          value: 'false'
+        - name: POSTGRESQL_PGAUDIT_LOG_CATALOG
+          value: 'off'
+        - name: POSTGRESQL_CLIENT_MIN_MESSAGES
+          value: error
+        - name: POSTGRESQL_SHARED_PRELOAD_LIBRARIES
+          value: pgaudit
+        image: docker.io/bitnamilegacy/postgresql:17.5.0-debian-12-r20
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - exec pg_isready -U "zammad" -d "dbname=zammad_production" -h 127.0.0.1 -p 5432
+          failureThreshold: 6
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        name: postgresql
+        ports:
+        - containerPort: 5432
+          name: tcp-postgresql
+          protocol: TCP
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - -e
+            - 'exec pg_isready -U "zammad" -d "dbname=zammad_production" -h 127.0.0.1 -p 5432
+
+              '
+          failureThreshold: 6
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        resources:
+          limits:
+            cpu: 150m
+            ephemeral-storage: 2Gi
+            memory: 192Mi
+          requests:
+            cpu: 100m
+            ephemeral-storage: 50Mi
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          privileged: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /tmp
+          name: empty-dir
+          subPath: tmp-dir
+        - mountPath: /opt/bitnami/postgresql/conf
+          name: empty-dir
+          subPath: app-conf-dir
+        - mountPath: /opt/bitnami/postgresql/tmp
+          name: empty-dir
+          subPath: app-tmp-dir
+        - mountPath: /opt/bitnami/postgresql/secrets/
+          name: postgresql-password
+        - mountPath: /dev/shm
+          name: dshm
+        - mountPath: /bitnami/postgresql
+          name: data
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        fsGroupChangePolicy: Always
+      serviceAccount: self-service-agent-postgresql
+      serviceAccountName: self-service-agent-postgresql
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - emptyDir: {}
+        name: empty-dir
+      - name: postgresql-password
+        secret:
+          defaultMode: 420
+          secretName: self-service-agent-postgresql
+      - emptyDir:
+          medium: Memory
+        name: dshm
+  updateStrategy:
+    rollingUpdate:
+      partition: 0
+    type: RollingUpdate
+  volumeClaimTemplates:
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      creationTimestamp: null
+      name: data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 8Gi
+      volumeMode: Filesystem
+    status:
+      phase: Pending
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app.kubernetes.io/name: redis
+  name: self-service-agent-redis
+  namespace: ticket-resolution
+spec:
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Retain
+    whenScaled: Retain
+  podManagementPolicy: OrderedReady
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: self-service-agent
+      app.kubernetes.io/name: redis
+  serviceName: self-service-agent-redis-headless
+  template:
+    metadata:
+      annotations:
+        checksum/config: 294a093cafef93d0e0b2d399b0d11a262d7f8618f7bfb84afaec0e75430a3dee
+      creationTimestamp: null
+      labels:
+        app.kubernetes.io/instance: self-service-agent
+        app.kubernetes.io/name: redis
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - command:
+        - /bin/sh
+        - -c
+        - 'CONFIG_FILE="/usr/local/etc/redis/redis.conf"
+
+
+          redis-server "$CONFIG_FILE" --requirepass "${REDIS_PASSWORD}"
+
+          '
+        env:
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: redis-password
+              name: self-service-agent-redis
+        - name: REDISCLI_AUTH
+          valueFrom:
+            secretKeyRef:
+              key: redis-password
+              name: self-service-agent-redis
+        image: docker.io/redis:8.6.1@sha256:1c054d54ecd1597bba52f4304bca5afbc5565ebe614c5b3d7dc5b7f8a0cd768d
+        imagePullPolicy: Always
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - '
+
+              redis-cli -h "127.0.0.1" ping
+
+              '
+          failureThreshold: 6
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        name: redis
+        ports:
+        - containerPort: 6379
+          name: redis
+          protocol: TCP
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - "\nredis-cli -h \"127.0.0.1\" ping \n"
+          failureThreshold: 6
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi
+          requests:
+            cpu: 50m
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          privileged: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /data
+          name: data
+        - mountPath: /usr/local/etc/redis
+          name: config
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      serviceAccount: default
+      serviceAccountName: default
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: self-service-agent-redis-config
+        name: config
+  updateStrategy:
+    rollingUpdate:
+      partition: 0
+    type: RollingUpdate
+  volumeClaimTemplates:
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      creationTimestamp: null
+      labels:
+        app.kubernetes.io/instance: self-service-agent
+        app.kubernetes.io/name: redis
+      name: data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 8Gi
+      volumeMode: Filesystem
+    status:
+      phase: Pending

@@ -1,0 +1,84 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  annotations:
+    openshift.io/host.generated: 'true'
+  labels:
+    app: nemo-guardrails
+    component: nemo-guardrails
+  name: nemo-guardrails
+  namespace: ticket-resolution
+spec:
+  port:
+    targetPort: nemo-guardrails
+  tls:
+    insecureEdgeTerminationPolicy: Redirect
+    termination: edge
+  to:
+    kind: Service
+    name: nemo-guardrails
+    weight: 100
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  annotations:
+    haproxy.router.openshift.io/timeout: 180s
+    openshift.io/host.generated: 'true'
+  labels:
+    app.kubernetes.io/component: integration-dispatcher
+    app.kubernetes.io/name: self-service-agent
+  name: ssa-integration-dispatcher
+  namespace: ticket-resolution
+spec:
+  path: /slack
+  port:
+    targetPort: http
+  tls:
+    insecureEdgeTerminationPolicy: Redirect
+    termination: edge
+  to:
+    kind: Service
+    name: self-service-agent-integration-dispatcher
+    weight: 100
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  annotations:
+    haproxy.router.openshift.io/timeout: 300s
+    openshift.io/host.generated: 'true'
+  labels:
+    app.kubernetes.io/component: zammad
+  name: ssa-zammad
+  namespace: ticket-resolution
+spec:
+  path: /
+  port:
+    targetPort: http
+  tls:
+    insecureEdgeTerminationPolicy: Redirect
+    termination: edge
+  to:
+    kind: Service
+    name: zammad-nginx
+    weight: 100
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  labels:
+    app.kubernetes.io/component: zammad-demo-site
+  name: ssa-zammad-demo-site
+  namespace: ticket-resolution
+spec:
+  path: /demo-portal
+  port:
+    targetPort: http
+  tls:
+    insecureEdgeTerminationPolicy: Redirect
+    termination: edge
+  to:
+    kind: Service
+    name: zammad-demo-site
+    weight: 100

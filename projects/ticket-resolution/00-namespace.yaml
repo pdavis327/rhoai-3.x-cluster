@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ticket-resolution
+  annotations:
+    openshift.io/display-name: ''
+    openshift.io/description: ''

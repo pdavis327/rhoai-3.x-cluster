@@ -1,0 +1,59 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app.kubernetes.io/instance: self-service-agent
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: self-service-agent
+    app.kubernetes.io/version: 0.0.14
+    helm.sh/chart: self-service-agent-0.1.0
+  name: self-service-agent-init-job-reader
+  namespace: ticket-resolution
+rules:
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+    helm.sh/hook-weight: '5'
+  labels:
+    app.kubernetes.io/component: zammad-bootstrap
+    app.kubernetes.io/instance: self-service-agent
+    app.kubernetes.io/managed-by: Helm
+  name: self-service-agent-zammad-bootstrap
+  namespace: ticket-resolution
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - secrets
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  verbs:
+  - get
+  - list
+  - watch

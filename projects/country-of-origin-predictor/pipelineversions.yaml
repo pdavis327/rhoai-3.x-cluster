@@ -1,0 +1,585 @@
+apiVersion: pipelines.kubeflow.org/v2beta1
+kind: PipelineVersion
+metadata:
+  labels:
+    pipelines.kubeflow.org/pipeline: coo-predictor-pipeline
+    pipelines.kubeflow.org/pipeline-id: 6863b17e-2969-4012-9faa-7fb8ba3bb1d8
+  name: coo-predictor-pipeline
+  namespace: country-of-origin-predictor
+spec:
+  displayName: coo-predictor-pipeline
+  pipelineName: coo-predictor-pipeline
+  pipelineSpec:
+    components:
+      comp-evaluate-model:
+        executorLabel: exec-evaluate-model
+        inputDefinitions:
+          artifacts:
+            label_encoder:
+              artifactType:
+                schemaTitle: system.Model
+                schemaVersion: 0.0.1
+            test_results:
+              artifactType:
+                schemaTitle: system.Dataset
+                schemaVersion: 0.0.1
+          parameters:
+            bucket_name:
+              parameterType: STRING
+            minio_access_key:
+              parameterType: STRING
+            minio_endpoint:
+              parameterType: STRING
+            minio_secret_key:
+              parameterType: STRING
+        outputDefinitions:
+          artifacts:
+            confusion_matrix_plot:
+              artifactType:
+                schemaTitle: system.Dataset
+                schemaVersion: 0.0.1
+      comp-generate-embeddings:
+        executorLabel: exec-generate-embeddings
+        inputDefinitions:
+          artifacts:
+            descriptions:
+              artifactType:
+                schemaTitle: system.Dataset
+                schemaVersion: 0.0.1
+          parameters:
+            api_key:
+              parameterType: STRING
+            embedding_model:
+              parameterType: STRING
+            endpoint:
+              parameterType: STRING
+        outputDefinitions:
+          artifacts:
+            embeddings:
+              artifactType:
+                schemaTitle: system.Dataset
+                schemaVersion: 0.0.1
+      comp-load-and-prepare-data:
+        executorLabel: exec-load-and-prepare-data
+        inputDefinitions:
+          parameters:
+            bucket_name:
+              parameterType: STRING
+            data_filename:
+              parameterType: STRING
+            minio_access_key:
+              parameterType: STRING
+            minio_endpoint:
+              parameterType: STRING
+            minio_secret_key:
+              parameterType: STRING
+        outputDefinitions:
+          artifacts:
+            descriptions:
+              artifactType:
+                schemaTitle: system.Dataset
+                schemaVersion: 0.0.1
+            label_encoder:
+              artifactType:
+                schemaTitle: system.Model
+                schemaVersion: 0.0.1
+            labels:
+              artifactType:
+                schemaTitle: system.Dataset
+                schemaVersion: 0.0.1
+            processed_data:
+              artifactType:
+                schemaTitle: system.Dataset
+                schemaVersion: 0.0.1
+      comp-predict-on-unseen-data:
+        executorLabel: exec-predict-on-unseen-data
+        inputDefinitions:
+          artifacts:
+            label_encoder:
+              artifactType:
+                schemaTitle: system.Model
+                schemaVersion: 0.0.1
+            trained_model:
+              artifactType:
+                schemaTitle: system.Model
+                schemaVersion: 0.0.1
+          parameters:
+            api_key:
+              parameterType: STRING
+            bucket_name:
+              parameterType: STRING
+            embedding_model:
+              parameterType: STRING
+            endpoint:
+              parameterType: STRING
+            minio_access_key:
+              parameterType: STRING
+            minio_endpoint:
+              parameterType: STRING
+            minio_secret_key:
+              parameterType: STRING
+            predictions_output_filename:
+              parameterType: STRING
+            unseen_data_filename:
+              parameterType: STRING
+      comp-train-model:
+        executorLabel: exec-train-model
+        inputDefinitions:
+          artifacts:
+            embeddings:
+              artifactType:
+                schemaTitle: system.Dataset
+                schemaVersion: 0.0.1
+            label_encoder:
+              artifactType:
+                schemaTitle: system.Model
+                schemaVersion: 0.0.1
+            labels:
+              artifactType:
+                schemaTitle: system.Dataset
+                schemaVersion: 0.0.1
+        outputDefinitions:
+          artifacts:
+            metrics:
+              artifactType:
+                schemaTitle: system.Metrics
+                schemaVersion: 0.0.1
+            test_results:
+              artifactType:
+                schemaTitle: system.Dataset
+                schemaVersion: 0.0.1
+            trained_model:
+              artifactType:
+                schemaTitle: system.Model
+                schemaVersion: 0.0.1
+    deploymentSpec:
+      executors:
+        exec-evaluate-model:
+          container:
+            args:
+            - --executor_input
+            - '{{$}}'
+            - --function_to_execute
+            - evaluate_model
+            command:
+            - sh
+            - -c
+            - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip || python3 -m ensurepip --user || apt-get\
+              \ install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location\
+              \ 'kfp==2.13.0' '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"'  &&  python3 -m pip install\
+              \ --quiet --no-warn-script-location 'matplotlib' 'seaborn' 'scikit-learn' 'numpy' 'boto3' && \"$0\" \"$@\"\n"
+            - sh
+            - -ec
+            - 'program_path=$(mktemp -d)
+
+
+              printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+              _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+              '
+            - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import *\n\ndef evaluate_model(\n   \
+              \ test_results: Input[Dataset],\n    label_encoder: Input[Model],\n    minio_endpoint: str,\n    minio_access_key:\
+              \ str,\n    minio_secret_key: str,\n    bucket_name: str,\n    confusion_matrix_plot: Output[Dataset],\n):\n\
+              \    \"\"\"Evaluate model and generate visualizations\"\"\"\n    import pickle\n    import numpy as np\n   \
+              \ import matplotlib.pyplot as plt\n    import seaborn as sns\n    from sklearn.metrics import confusion_matrix,\
+              \ classification_report\n    import boto3\n\n    # Load test results and label encoder\n    with open(test_results.path,\
+              \ \"rb\") as f:\n        test_data = pickle.load(f)\n\n    with open(label_encoder.path, \"rb\") as f:\n   \
+              \     label_encoder_obj = pickle.load(f)\n\n    y_test = np.array(test_data[\"y_test\"])\n    y_pred = np.array(test_data[\"\
+              y_pred\"])\n    accuracy = test_data[\"accuracy\"]\n\n    class_names = label_encoder_obj.classes_\n\n    print(f\"\
+              Model Performance:\")\n    print(f\"   - Accuracy: {accuracy:.1%}\")\n\n    # Show detailed results\n    print(\"\
+              \\nDetailed Classification Report:\")\n    print(classification_report(y_test, y_pred, target_names=class_names))\n\
+              \n    # Setup MinIO client\n    s3_client = boto3.client(\n        \"s3\",\n        endpoint_url=minio_endpoint,\n\
+              \        aws_access_key_id=minio_access_key,\n        aws_secret_access_key=minio_secret_key,\n        verify=False,\n\
+              \    )\n\n    # Create confusion matrix\n    if len(class_names) > 1:\n        cm = confusion_matrix(y_test,\
+              \ y_pred)\n\n        plt.figure(figsize=(8, 6))\n        sns.heatmap(\n            cm,\n            annot=True,\n\
+              \            fmt=\"d\",\n            cmap=\"Blues\",\n            xticklabels=class_names,\n            yticklabels=class_names,\n\
+              \        )\n        plt.title(\"Confusion Matrix - Country of Origin Prediction\")\n        plt.xlabel(\"Predicted\
+              \ Country\")\n        plt.ylabel(\"Actual Country\")\n        plt.xticks(rotation=45)\n        plt.tight_layout()\n\
+              \n        # Save locally first\n        local_plot_path = \"/tmp/confusion_matrix.png\"\n        plt.savefig(local_plot_path,\
+              \ dpi=150, bbox_inches=\"tight\")\n        plt.savefig(confusion_matrix_plot.path, dpi=150, bbox_inches=\"tight\"\
+              )\n        plt.close()\n\n        # Upload to MinIO\n        s3_client.upload_file(\n            local_plot_path,\
+              \ bucket_name, \"outputs/confusion_matrix.png\"\n        )\n\n        print(\"Confusion matrix saved to MinIO\"\
+              )\n\n    # Save evaluation report to MinIO\n    eval_report = classification_report(y_test, y_pred, target_names=class_names)\n\
+              \    local_report_path = \"/tmp/evaluation_report.txt\"\n    with open(local_report_path, \"w\") as f:\n   \
+              \     f.write(f\"Model Performance:\\n\")\n        f.write(f\"Accuracy: {accuracy:.1%}\\n\\n\")\n        f.write(\"\
+              Detailed Classification Report:\\n\")\n        f.write(eval_report)\n\n    s3_client.upload_file(\n        local_report_path,\
+              \ bucket_name, \"outputs/evaluation_report.txt\"\n    )\n\n    print(\"Evaluation complete - results saved to\
+              \ MinIO outputs folder\")\n\n"
+            image: registry.redhat.io/ubi8/python-39:latest
+        exec-generate-embeddings:
+          container:
+            args:
+            - --executor_input
+            - '{{$}}'
+            - --function_to_execute
+            - generate_embeddings
+            command:
+            - sh
+            - -c
+            - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip || python3 -m ensurepip --user || apt-get\
+              \ install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location\
+              \ 'kfp==2.13.0' '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"'  &&  python3 -m pip install\
+              \ --quiet --no-warn-script-location 'numpy' 'python-dotenv' 'requests' && \"$0\" \"$@\"\n"
+            - sh
+            - -ec
+            - 'program_path=$(mktemp -d)
+
+
+              printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+              _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+              '
+            - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import *\n\ndef generate_embeddings(\n\
+              \    descriptions: Input[Dataset],\n    endpoint: str,\n    embedding_model: str,\n    api_key: str,\n    embeddings:\
+              \ Output[Dataset],\n):\n    \"\"\"Generate embeddings using vLLM BGE-Large model\"\"\"\n    import pickle\n\
+              \    import numpy as np\n    import requests\n    import json\n\n    # Load descriptions\n    with open(descriptions.path,\
+              \ \"rb\") as f:\n        descriptions_list = pickle.load(f)\n\n    print(f\"Generating embeddings for {len(descriptions_list)}\
+              \ descriptions...\")\n\n    # Create embeddings via API call\n    headers = {\"Authorization\": f\"Bearer {api_key}\"\
+              , \"Content-Type\": \"application/json\"}\n\n    embeddings_list = []\n\n    for desc in descriptions_list:\n\
+              \        payload = {\"model\": embedding_model, \"input\": desc}\n\n        response = requests.post(\n    \
+              \        f\"{endpoint}/v1/embeddings\", headers=headers, json=payload, verify=False\n        )\n\n        if\
+              \ response.status_code == 200:\n            result = response.json()\n            embedding = result[\"data\"\
+              ][0][\"embedding\"]\n            embeddings_list.append(embedding)\n        else:\n            print(f\"Error\
+              \ generating embedding: {response.status_code}\")\n            raise Exception(f\"Failed to generate embedding\
+              \ for: {desc[:50]}...\")\n\n    if embeddings_list:\n        X = np.array(embeddings_list)\n        print(f\"\
+              Generated embeddings with shape: {X.shape}\")\n\n        # Save embeddings\n        with open(embeddings.path,\
+              \ \"wb\") as f:\n            pickle.dump(X, f)\n\n        print(\"Embeddings saved\")\n    else:\n        raise\
+              \ Exception(\"Failed to generate embeddings\")\n\n"
+            image: registry.redhat.io/ubi8/python-39:latest
+        exec-load-and-prepare-data:
+          container:
+            args:
+            - --executor_input
+            - '{{$}}'
+            - --function_to_execute
+            - load_and_prepare_data
+            command:
+            - sh
+            - -c
+            - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip || python3 -m ensurepip --user || apt-get\
+              \ install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location\
+              \ 'kfp==2.13.0' '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"'  &&  python3 -m pip install\
+              \ --quiet --no-warn-script-location 'pandas' 'numpy' 'scikit-learn' 'python-dotenv' 'boto3' && \"$0\" \"$@\"\
+              \n"
+            - sh
+            - -ec
+            - 'program_path=$(mktemp -d)
+
+
+              printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+              _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+              '
+            - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import *\n\ndef load_and_prepare_data(\n\
+              \    minio_endpoint: str,\n    minio_access_key: str,\n    minio_secret_key: str,\n    bucket_name: str,\n \
+              \   data_filename: str,\n    processed_data: Output[Dataset],\n    label_encoder: Output[Model],\n    labels:\
+              \ Output[Dataset],\n    descriptions: Output[Dataset],\n):\n    \"\"\"Load and prepare data for the embedding\
+              \ pipeline\"\"\"\n    import pandas as pd\n    import numpy as np\n    from sklearn.preprocessing import LabelEncoder\n\
+              \    import pickle\n    import boto3\n    import os\n\n    # Setup MinIO client\n    s3_client = boto3.client(\n\
+              \        \"s3\",\n        endpoint_url=minio_endpoint,\n        aws_access_key_id=minio_access_key,\n      \
+              \  aws_secret_access_key=minio_secret_key,\n        verify=False,\n    )\n\n    # Download data from MinIO\n\
+              \    local_data_path = \"/tmp/input_data.csv\"\n    s3_client.download_file(bucket_name, f\"data/{data_filename}\"\
+              , local_data_path)\n\n    # Load the synthetic electronics data\n    df = pd.read_csv(local_data_path)\n\n \
+              \   print(f\"Loaded {len(df)} records from MinIO bucket {bucket_name}\")\n    print(f\"Columns: {list(df.columns)}\"\
+              )\n\n    # Prepare labels\n    label_encoder_obj = LabelEncoder()\n    y = label_encoder_obj.fit_transform(df[\"\
+              Country_Of_Origin\"])\n    class_names = label_encoder_obj.classes_\n\n    print(f\"Number of countries: {len(class_names)}\"\
+              )\n    print(f\"Countries: {list(class_names)}\")\n\n    # Save processed data and encoder\n    df.to_csv(processed_data.path,\
+              \ index=False)\n\n    with open(label_encoder.path, \"wb\") as f:\n        pickle.dump(label_encoder_obj, f)\n\
+              \n    with open(labels.path, \"wb\") as f:\n        pickle.dump(y, f)\n\n    # Save descriptions for embedding\
+              \ generation\n    descriptions_list = df[\"Part_Description\"].tolist()\n    with open(descriptions.path, \"\
+              wb\") as f:\n        pickle.dump(descriptions_list, f)\n\n    print(\"Data preparation complete\")\n\n"
+            image: registry.redhat.io/ubi8/python-39:latest
+        exec-predict-on-unseen-data:
+          container:
+            args:
+            - --executor_input
+            - '{{$}}'
+            - --function_to_execute
+            - predict_on_unseen_data
+            command:
+            - sh
+            - -c
+            - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip || python3 -m ensurepip --user || apt-get\
+              \ install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location\
+              \ 'kfp==2.13.0' '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"'  &&  python3 -m pip install\
+              \ --quiet --no-warn-script-location 'pandas' 'numpy' 'scikit-learn' 'joblib' 'requests' 'boto3' && \"$0\" \"\
+              $@\"\n"
+            - sh
+            - -ec
+            - 'program_path=$(mktemp -d)
+
+
+              printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+              _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+              '
+            - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import *\n\ndef predict_on_unseen_data(\n\
+              \    trained_model: Input[Model],\n    label_encoder: Input[Model],\n    minio_endpoint: str,\n    minio_access_key:\
+              \ str,\n    minio_secret_key: str,\n    bucket_name: str,\n    unseen_data_filename: str,\n    predictions_output_filename:\
+              \ str,\n    endpoint: str,\n    embedding_model: str,\n    api_key: str,\n):\n    \"\"\"Load unseen data, generate\
+              \ embeddings, make predictions, and save results to MinIO\"\"\"\n    import pandas as pd\n    import numpy as\
+              \ np\n    import pickle\n    import joblib\n    import requests\n    import json\n    import boto3\n\n    #\
+              \ Setup MinIO client\n    s3_client = boto3.client(\n        \"s3\",\n        endpoint_url=minio_endpoint,\n\
+              \        aws_access_key_id=minio_access_key,\n        aws_secret_access_key=minio_secret_key,\n        verify=False,\n\
+              \    )\n\n    # Download unseen data from MinIO\n    local_data_path = \"/tmp/unseen_data.csv\"\n    s3_client.download_file(bucket_name,\
+              \ f\"data/{unseen_data_filename}\", local_data_path)\n\n    # Load the unseen data\n    df = pd.read_csv(local_data_path)\n\
+              \    print(f\"Loaded {len(df)} unseen records for prediction\")\n    print(f\"Columns: {list(df.columns)}\"\
+              )\n\n    # Extract descriptions for embedding generation\n    descriptions_list = df[\"Part_Description\"].tolist()\n\
+              \    print(f\"Generating embeddings for {len(descriptions_list)} descriptions...\")\n\n    # Generate embeddings\
+              \ via API call\n    headers = {\"Authorization\": f\"Bearer {api_key}\", \"Content-Type\": \"application/json\"\
+              }\n    embeddings_list = []\n\n    for desc in descriptions_list:\n        payload = {\"model\": embedding_model,\
+              \ \"input\": desc}\n\n        response = requests.post(\n            f\"{endpoint}/v1/embeddings\", headers=headers,\
+              \ json=payload, verify=False\n        )\n\n        if response.status_code == 200:\n            result = response.json()\n\
+              \            embedding = result[\"data\"][0][\"embedding\"]\n            embeddings_list.append(embedding)\n\
+              \        else:\n            print(f\"Error generating embedding: {response.status_code}\")\n            raise\
+              \ Exception(f\"Failed to generate embedding for: {desc[:50]}...\")\n\n    if not embeddings_list:\n        raise\
+              \ Exception(\"Failed to generate embeddings for unseen data\")\n\n    X_unseen = np.array(embeddings_list)\n\
+              \    print(f\"Generated embeddings with shape: {X_unseen.shape}\")\n\n    # Load trained model and label encoder\n\
+              \    knn_model = joblib.load(trained_model.path)\n\n    with open(label_encoder.path, \"rb\") as f:\n      \
+              \  label_encoder_obj = pickle.load(f)\n\n    # Make predictions\n    print(\"Making predictions...\")\n    y_pred_encoded\
+              \ = knn_model.predict(X_unseen)\n    y_pred_labels = label_encoder_obj.inverse_transform(y_pred_encoded)\n\n\
+              \    # Get prediction probabilities/distances for confidence scoring\n    distances, _ = knn_model.kneighbors(X_unseen)\n\
+              \    confidence_scores = 1 / (1 + distances.mean(axis=1))  # Convert distances to confidence scores\n\n    print(f\"\
+              Predictions complete for {len(y_pred_labels)} samples\")\n\n    # Create predictions dataframe\n    predictions_df\
+              \ = df.copy()\n    predictions_df[\"Predicted_Country_Of_Origin\"] = y_pred_labels\n    predictions_df[\"Confidence_Score\"\
+              ] = confidence_scores\n\n    # Save predictions locally first\n    local_predictions_path = \"/tmp/predictions.csv\"\
+              \n    predictions_df.to_csv(local_predictions_path, index=False)\n\n    # Upload predictions to MinIO\n    s3_client.upload_file(\n\
+              \        local_predictions_path, bucket_name, f\"data/{predictions_output_filename}\"\n    )\n\n    print(f\"\
+              Predictions saved to MinIO: data/{predictions_output_filename}\")\n    print(f\"Predicted countries distribution:\"\
+              )\n    for country, count in pd.Series(y_pred_labels).value_counts().head(10).items():\n        print(f\"  \
+              \ - {country}: {count}\")\n\n"
+            image: registry.redhat.io/ubi8/python-39:latest
+        exec-train-model:
+          container:
+            args:
+            - --executor_input
+            - '{{$}}'
+            - --function_to_execute
+            - train_model
+            command:
+            - sh
+            - -c
+            - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip || python3 -m ensurepip --user || apt-get\
+              \ install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location\
+              \ 'kfp==2.13.0' '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"'  &&  python3 -m pip install\
+              \ --quiet --no-warn-script-location 'numpy' 'scikit-learn' 'joblib' && \"$0\" \"$@\"\n"
+            - sh
+            - -ec
+            - 'program_path=$(mktemp -d)
+
+
+              printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+              _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+              '
+            - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import *\n\ndef train_model(\n    embeddings:\
+              \ Input[Dataset],\n    labels: Input[Dataset],\n    label_encoder: Input[Model],\n    trained_model: Output[Model],\n\
+              \    test_results: Output[Dataset],\n    metrics: Output[Metrics],\n):\n    \"\"\"Train KNN classifier on embeddings\"\
+              \"\"\n    import pickle\n    import numpy as np\n    from sklearn.model_selection import train_test_split\n\
+              \    from sklearn.neighbors import KNeighborsClassifier\n    from sklearn.metrics import accuracy_score\n  \
+              \  import joblib\n    import json\n\n    # Load embeddings and labels\n    with open(embeddings.path, \"rb\"\
+              ) as f:\n        X = pickle.load(f)\n\n    with open(labels.path, \"rb\") as f:\n        y = pickle.load(f)\n\
+              \n    with open(label_encoder.path, \"rb\") as f:\n        label_encoder_obj = pickle.load(f)\n\n    class_names\
+              \ = label_encoder_obj.classes_\n\n    print(f\"Dataset info:\")\n    print(f\"   - Total samples: {len(X)}\"\
+              )\n    print(f\"   - Embedding dimension: {X.shape[1]}\")\n    print(f\"   - Number of countries: {len(class_names)}\"\
+              )\n\n    # Split data for training and testing\n    X_train, X_test, y_train, y_test = train_test_split(\n \
+              \       X, y, test_size=0.2, random_state=42, stratify=y\n    )\n    print(f\"Split data: {len(X_train)} train,\
+              \ {len(X_test)} test\")\n\n    # Train KNN classifier\n    k = 3\n    knn = KNeighborsClassifier(n_neighbors=k)\n\
+              \    print(f\"Training KNN classifier with k={k}...\")\n    knn.fit(X_train, y_train)\n    print(\"KNN training\
+              \ complete\")\n\n    # Evaluate model\n    y_pred = knn.predict(X_test)\n    accuracy = accuracy_score(y_test,\
+              \ y_pred)\n\n    print(f\"Model Performance:\")\n    print(f\"   - Accuracy: {accuracy:.1%}\")\n\n    # Save\
+              \ model\n    joblib.dump(knn, trained_model.path)\n\n    # Save test data for evaluation\n    test_data = {\n\
+              \        \"X_test\": X_test.tolist(),\n        \"y_test\": y_test.tolist(),\n        \"y_pred\": y_pred.tolist(),\n\
+              \        \"accuracy\": accuracy,\n    }\n\n    with open(test_results.path, \"wb\") as f:\n        pickle.dump(test_data,\
+              \ f)\n\n    # Log metrics\n    metrics.log_metric(\"accuracy\", accuracy)\n    metrics.log_metric(\"test_samples\"\
+              , len(X_test))\n    metrics.log_metric(\"num_classes\", len(class_names))\n\n    print(\"Model training complete\"\
+              )\n\n"
+            image: registry.redhat.io/ubi8/python-39:latest
+    pipelineInfo:
+      description: Electronics parts country of origin prediction using BGE-Large embeddings
+      name: electronics-embedding-pipeline
+    root:
+      dag:
+        tasks:
+          evaluate-model:
+            cachingOptions:
+              enableCache: true
+            componentRef:
+              name: comp-evaluate-model
+            dependentTasks:
+            - load-and-prepare-data
+            - train-model
+            inputs:
+              artifacts:
+                label_encoder:
+                  taskOutputArtifact:
+                    outputArtifactKey: label_encoder
+                    producerTask: load-and-prepare-data
+                test_results:
+                  taskOutputArtifact:
+                    outputArtifactKey: test_results
+                    producerTask: train-model
+              parameters:
+                bucket_name:
+                  componentInputParameter: bucket_name
+                minio_access_key:
+                  componentInputParameter: minio_access_key
+                minio_endpoint:
+                  componentInputParameter: minio_endpoint
+                minio_secret_key:
+                  componentInputParameter: minio_secret_key
+            taskInfo:
+              name: evaluate-model
+          generate-embeddings:
+            cachingOptions:
+              enableCache: true
+            componentRef:
+              name: comp-generate-embeddings
+            dependentTasks:
+            - load-and-prepare-data
+            inputs:
+              artifacts:
+                descriptions:
+                  taskOutputArtifact:
+                    outputArtifactKey: descriptions
+                    producerTask: load-and-prepare-data
+              parameters:
+                api_key:
+                  componentInputParameter: api_key
+                embedding_model:
+                  componentInputParameter: embedding_model
+                endpoint:
+                  componentInputParameter: endpoint
+            taskInfo:
+              name: generate-embeddings
+          load-and-prepare-data:
+            cachingOptions:
+              enableCache: true
+            componentRef:
+              name: comp-load-and-prepare-data
+            inputs:
+              parameters:
+                bucket_name:
+                  componentInputParameter: bucket_name
+                data_filename:
+                  componentInputParameter: data_filename
+                minio_access_key:
+                  componentInputParameter: minio_access_key
+                minio_endpoint:
+                  componentInputParameter: minio_endpoint
+                minio_secret_key:
+                  componentInputParameter: minio_secret_key
+            taskInfo:
+              name: load-and-prepare-data
+          predict-on-unseen-data:
+            cachingOptions:
+              enableCache: true
+            componentRef:
+              name: comp-predict-on-unseen-data
+            dependentTasks:
+            - load-and-prepare-data
+            - train-model
+            inputs:
+              artifacts:
+                label_encoder:
+                  taskOutputArtifact:
+                    outputArtifactKey: label_encoder
+                    producerTask: load-and-prepare-data
+                trained_model:
+                  taskOutputArtifact:
+                    outputArtifactKey: trained_model
+                    producerTask: train-model
+              parameters:
+                api_key:
+                  componentInputParameter: api_key
+                bucket_name:
+                  componentInputParameter: bucket_name
+                embedding_model:
+                  componentInputParameter: embedding_model
+                endpoint:
+                  componentInputParameter: endpoint
+                minio_access_key:
+                  componentInputParameter: minio_access_key
+                minio_endpoint:
+                  componentInputParameter: minio_endpoint
+                minio_secret_key:
+                  componentInputParameter: minio_secret_key
+                predictions_output_filename:
+                  componentInputParameter: predictions_output_filename
+                unseen_data_filename:
+                  componentInputParameter: unseen_data_filename
+            taskInfo:
+              name: predict-on-unseen-data
+          train-model:
+            cachingOptions:
+              enableCache: true
+            componentRef:
+              name: comp-train-model
+            dependentTasks:
+            - generate-embeddings
+            - load-and-prepare-data
+            inputs:
+              artifacts:
+                embeddings:
+                  taskOutputArtifact:
+                    outputArtifactKey: embeddings
+                    producerTask: generate-embeddings
+                label_encoder:
+                  taskOutputArtifact:
+                    outputArtifactKey: label_encoder
+                    producerTask: load-and-prepare-data
+                labels:
+                  taskOutputArtifact:
+                    outputArtifactKey: labels
+                    producerTask: load-and-prepare-data
+            taskInfo:
+              name: train-model
+      inputDefinitions:
+        parameters:
+          api_key:
+            defaultValue: ''
+            isOptional: true
+            parameterType: STRING
+          bucket_name:
+            defaultValue: pipeline
+            isOptional: true
+            parameterType: STRING
+          data_filename:
+            defaultValue: synthetic_electronics_parts_1k.csv
+            isOptional: true
+            parameterType: STRING
+          embedding_model:
+            defaultValue: ''
+            isOptional: true
+            parameterType: STRING
+          endpoint:
+            defaultValue: ''
+            isOptional: true
+            parameterType: STRING
+          minio_access_key:
+            defaultValue: ''
+            isOptional: true
+            parameterType: STRING
+          minio_endpoint:
+            defaultValue: ''
+            isOptional: true
+            parameterType: STRING
+          minio_secret_key:
+            defaultValue: ''
+            isOptional: true
+            parameterType: STRING
+          predictions_output_filename:
+            defaultValue: predictions_output.csv
+            isOptional: true
+            parameterType: STRING
+          unseen_data_filename:
+            defaultValue: unseen_electronics_parts.csv
+            isOptional: true
+            parameterType: STRING
+    schemaVersion: 2.1.0
+    sdkVersion: kfp-2.13.0

@@ -1,19 +1,21 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: rhoai-demo-workloads
+  name: demo-ray-workshop
   namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   project: default
   source:
     repoURL: https://github.com/pdavis327/rhoai-3.x-cluster
     targetRevision: main
-    path: argocd-applications
+    path: projects/ray-workshop
     directory:
       recurse: true
   destination:
     server: https://kubernetes.default.svc
-    namespace: openshift-gitops
+    namespace: ray-workshop
   syncPolicy:
     automated:
       prune: true
@@ -25,7 +27,7 @@ spec:
         factor: 2
         maxDuration: 3m
     syncOptions:
-      - CreateNamespace=false
+      - CreateNamespace=true
       - ServerSideApply=true
       - SkipDryRunOnMissingResource=true
       - RespectIgnoreDifferences=true

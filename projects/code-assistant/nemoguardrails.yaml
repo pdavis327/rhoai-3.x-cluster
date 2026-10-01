@@ -1,0 +1,19 @@
+apiVersion: trustyai.opendatahub.io/v1alpha1
+kind: NemoGuardrails
+metadata:
+  annotations:
+    security.opendatahub.io/enable-auth: 'true'
+  labels:
+    opendatahub.io/dashboard: 'true'
+  name: nemoguardrails
+  namespace: code-assistant
+spec:
+  env:
+  - name: OPENAI_API_KEY
+    value: fake
+  nemoConfigs:
+  - configMaps:
+    - guardrail-placeholder
+    default: true
+    name: guardrail-placeholder
+  replicas: 1

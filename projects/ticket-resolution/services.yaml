@@ -1,0 +1,423 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: llamastack
+  name: llamastack
+  namespace: ticket-resolution
+spec:
+  ports:
+  - name: http
+    port: 8321
+    protocol: TCP
+    targetPort: 8321
+  selector:
+    app.kubernetes.io/instance: self-service-agent
+    app.kubernetes.io/name: llamastack
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: mcp-server
+    app.kubernetes.io/name: self-service-agent-snow
+    mcp.transport: streamable-http
+  name: mcp-self-service-agent-snow
+  namespace: ticket-resolution
+spec:
+  ports:
+  - name: http
+    port: 8000
+    protocol: TCP
+    targetPort: 8000
+  selector:
+    app.kubernetes.io/instance: self-service-agent
+    app.kubernetes.io/name: self-service-agent-snow
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: mcp-server
+    app.kubernetes.io/name: zammad-mcp
+    mcp.transport: streamable-http
+  name: mcp-zammad-mcp
+  namespace: ticket-resolution
+spec:
+  ports:
+  - name: http
+    port: 8000
+    protocol: TCP
+    targetPort: 8000
+  selector:
+    app.kubernetes.io/instance: self-service-agent
+    app.kubernetes.io/name: zammad-mcp
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    service.alpha.openshift.io/serving-cert-signed-by: openshift-service-serving-signer@1773955639
+    service.beta.openshift.io/serving-cert-secret-name: nemo-guardrails-tls
+    service.beta.openshift.io/serving-cert-signed-by: openshift-service-serving-signer@1773955639
+  labels:
+    app: nemo-guardrails
+    component: nemo-guardrails
+  name: nemo-guardrails
+  namespace: ticket-resolution
+spec:
+  ports:
+  - name: nemo-guardrails
+    port: 80
+    protocol: TCP
+    targetPort: 8000
+  selector:
+    app: nemo-guardrails
+    component: nemo-guardrails
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: pgvector
+  name: pgvector
+  namespace: ticket-resolution
+spec:
+  ports:
+  - name: http
+    port: 5432
+    protocol: TCP
+    targetPort: http
+  selector:
+    app.kubernetes.io/instance: self-service-agent
+    app.kubernetes.io/name: pgvector
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: self-service-agent-agent-service
+    app.kubernetes.io/name: self-service-agent
+    component: agent-service
+  name: self-service-agent-agent-service
+  namespace: ticket-resolution
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: self-service-agent-agent-service
+    app.kubernetes.io/instance: self-service-agent
+    app.kubernetes.io/name: self-service-agent
+    component: agent-service
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: master
+    app.kubernetes.io/name: elasticsearch
+  name: self-service-agent-elasticsearch
+  namespace: ticket-resolution
+spec:
+  ports:
+  - name: tcp-rest-api
+    port: 9200
+    protocol: TCP
+    targetPort: rest-api
+  - name: tcp-transport
+    port: 9300
+    protocol: TCP
+    targetPort: 9300
+  selector:
+    app.kubernetes.io/component: master
+    app.kubernetes.io/instance: self-service-agent
+    app.kubernetes.io/name: elasticsearch
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: master
+    app.kubernetes.io/name: elasticsearch
+  name: self-service-agent-elasticsearch-master-hl
+  namespace: ticket-resolution
+spec:
+  ports:
+  - name: tcp-rest-api
+    port: 9200
+    protocol: TCP
+    targetPort: rest-api
+  - name: tcp-transport
+    port: 9300
+    protocol: TCP
+    targetPort: transport
+  publishNotReadyAddresses: true
+  selector:
+    app.kubernetes.io/component: master
+    app.kubernetes.io/instance: self-service-agent
+    app.kubernetes.io/name: elasticsearch
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: self-service-agent-integration-dispatcher
+    app.kubernetes.io/name: self-service-agent
+    component: integration-dispatcher
+  name: self-service-agent-integration-dispatcher
+  namespace: ticket-resolution
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: self-service-agent-integration-dispatcher
+    app.kubernetes.io/instance: self-service-agent
+    app.kubernetes.io/name: self-service-agent
+    component: integration-dispatcher
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: memcached
+  name: self-service-agent-memcached
+  namespace: ticket-resolution
+spec:
+  ports:
+  - name: memcached
+    port: 11211
+    protocol: TCP
+    targetPort: memcached
+  selector:
+    app.kubernetes.io/instance: self-service-agent
+    app.kubernetes.io/name: memcached
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: mock-eventing
+    app.kubernetes.io/name: self-service-agent
+  name: self-service-agent-mock-eventing
+  namespace: ticket-resolution
+spec:
+  ports:
+  - name: http
+    port: 8080
+    protocol: TCP
+    targetPort: http
+  selector:
+    app.kubernetes.io/component: mock-eventing
+    app.kubernetes.io/instance: self-service-agent
+    app.kubernetes.io/name: self-service-agent
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: mock-servicenow
+    app.kubernetes.io/name: self-service-agent
+  name: self-service-agent-mock-servicenow
+  namespace: ticket-resolution
+spec:
+  ports:
+  - name: http
+    port: 8080
+    protocol: TCP
+    targetPort: http
+  selector:
+    app.kubernetes.io/component: mock-servicenow
+    app.kubernetes.io/instance: self-service-agent
+    app.kubernetes.io/name: self-service-agent
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: primary
+    app.kubernetes.io/name: postgresql
+  name: self-service-agent-postgresql
+  namespace: ticket-resolution
+spec:
+  ports:
+  - name: tcp-postgresql
+    port: 5432
+    protocol: TCP
+    targetPort: tcp-postgresql
+  selector:
+    app.kubernetes.io/component: primary
+    app.kubernetes.io/instance: self-service-agent
+    app.kubernetes.io/name: postgresql
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: primary
+    app.kubernetes.io/name: postgresql
+  name: self-service-agent-postgresql-hl
+  namespace: ticket-resolution
+spec:
+  ports:
+  - name: tcp-postgresql
+    port: 5432
+    protocol: TCP
+    targetPort: tcp-postgresql
+  publishNotReadyAddresses: true
+  selector:
+    app.kubernetes.io/component: primary
+    app.kubernetes.io/instance: self-service-agent
+    app.kubernetes.io/name: postgresql
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: redis
+  name: self-service-agent-redis
+  namespace: ticket-resolution
+spec:
+  ports:
+  - name: redis
+    port: 6379
+    protocol: TCP
+    targetPort: redis
+  selector:
+    app.kubernetes.io/instance: self-service-agent
+    app.kubernetes.io/name: redis
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: redis
+  name: self-service-agent-redis-headless
+  namespace: ticket-resolution
+spec:
+  ports:
+  - name: redis
+    port: 6379
+    protocol: TCP
+    targetPort: redis
+  selector:
+    app.kubernetes.io/instance: self-service-agent
+    app.kubernetes.io/name: redis
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: self-service-agent-request-manager
+    app.kubernetes.io/name: self-service-agent
+    component: request-manager
+  name: self-service-agent-request-manager
+  namespace: ticket-resolution
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: self-service-agent-request-manager
+    app.kubernetes.io/instance: self-service-agent
+    app.kubernetes.io/name: self-service-agent
+    component: request-manager
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: zammad-demo-site
+  name: zammad-demo-site
+  namespace: ticket-resolution
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: http
+  selector:
+    app.kubernetes.io/component: zammad-demo-site
+    app.kubernetes.io/instance: zammad-demo-site
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: zammad
+  name: zammad-nginx
+  namespace: ticket-resolution
+spec:
+  ports:
+  - name: http
+    port: 8080
+    protocol: TCP
+    targetPort: http
+  selector:
+    app.kubernetes.io/component: zammad-nginx
+    app.kubernetes.io/instance: self-service-agent
+    app.kubernetes.io/name: zammad
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: zammad
+  name: zammad-railsserver
+  namespace: ticket-resolution
+spec:
+  ports:
+  - name: http
+    port: 3000
+    protocol: TCP
+    targetPort: 3000
+  selector:
+    app.kubernetes.io/component: zammad-railsserver
+    app.kubernetes.io/instance: self-service-agent
+    app.kubernetes.io/name: zammad
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: zammad
+  name: zammad-websocket
+  namespace: ticket-resolution
+spec:
+  ports:
+  - name: http
+    port: 6042
+    protocol: TCP
+    targetPort: 6042
+  selector:
+    app.kubernetes.io/component: zammad-websocket
+    app.kubernetes.io/instance: self-service-agent
+    app.kubernetes.io/name: zammad
+  type: ClusterIP

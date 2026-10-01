@@ -1,0 +1,50 @@
+apiVersion: serving.kserve.io/v1alpha2
+kind: LLMInferenceService
+metadata:
+  name: llama-3-2-1b-instruct
+  namespace: model-server
+  annotations:
+    opendatahub.io/connections: llama-3-2-1b-instruct
+    opendatahub.io/genai-use-case: chat
+    opendatahub.io/model-type: generative
+    openshift.io/display-name: meta-llama/llama-3.2-1b-instruct
+  labels:
+    opendatahub.io/dashboard: 'true'
+    opendatahub.io/genai-asset: 'true'
+spec:
+  model:
+    name: meta-llama/llama-3.2-1b-instruct
+    uri: oci://quay.io/redhat-ai-services/modelcar-catalog:llama-3.2-1b-instruct
+  replicas: 1
+  router:
+    gateway:
+      refs:
+      - name: maas-default-gateway
+        namespace: openshift-ingress
+    route: {}
+    scheduler:
+      template:
+        containers:
+        - name: main
+  template:
+    containers:
+    - name: main
+      resources:
+        limits:
+          cpu: '4'
+          memory: 8Gi
+          nvidia.com/gpu: '1'
+        requests:
+          cpu: '2'
+          memory: 4Gi
+          nvidia.com/gpu: '1'
+    tolerations:
+    - effect: NoSchedule
+      key: nvidia.com/gpu
+      operator: Exists
+    - effect: NoSchedule
+      key: largegpu
+      operator: Exists
+    - effect: NoSchedule
+      key: smallgpu
+      operator: Exists
