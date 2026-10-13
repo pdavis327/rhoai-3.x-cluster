@@ -142,7 +142,13 @@ celerybeat.pid
 *.sage.py
 
 # secrets
+# Only secrets/placeholders/** (sanitized CHANGE_ME values) is meant to be
+# committed. Anything else under secrets/ or security/ is live-cluster
+# material (htpasswd hashes, OAuth CRs, real keys) and must never be tracked.
 security/
+secrets/*
+!secrets/placeholders/
+!secrets/placeholders/**
 
 # Environments
 .env

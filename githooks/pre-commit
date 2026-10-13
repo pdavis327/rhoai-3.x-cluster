@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# Block commits that introduce secrets. Installed locally (not tracked by git);
+# re-run scripts/install-git-hooks.sh after a fresh clone to reinstall.
+set -uo pipefail
+
+GITLEAKS_BIN="${GITLEAKS_BIN:-gitleaks}"
+if ! command -v "$GITLEAKS_BIN" >/dev/null 2>&1; then
+  echo "pre-commit: gitleaks not found on PATH, skipping secret scan (install it: see README)" >&2
+  exit 0
+fi
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+"$GITLEAKS_BIN" protect \
+  --staged \
+  --source "$REPO_ROOT" \
+  --config "$REPO_ROOT/.gitleaks.toml" \
+  --redact \
+  --verbose
+status=$?
+
+if [ "$status" -ne 0 ]; then
+  echo
+  echo "pre-commit: gitleaks found a likely secret in your staged changes." >&2
+  echo "Fix the finding above, or if it's a false positive, add it to .gitleaks.toml's [allowlist]." >&2
+  exit 1
+fi
+exit 0
