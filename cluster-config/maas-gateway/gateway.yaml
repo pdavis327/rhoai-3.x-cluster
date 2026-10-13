@@ -9,7 +9,7 @@ data:
       annotations:
         service.beta.openshift.io/serving-cert-secret-name: "maas-default-gateway-service-tls"
     spec:
-      type: ClusterIP
+      type: LoadBalancer
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
@@ -34,6 +34,7 @@ spec:
       name: maas-default-gateway-config
   listeners:
   - name: https
+    hostname: maas.apps.ocp.cjrcx.sandbox1524.opentlc.com
     port: 443
     protocol: HTTPS
     tls:
