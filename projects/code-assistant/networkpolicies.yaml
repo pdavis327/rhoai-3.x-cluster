@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    gen-ai.opendatahub.io/pgvector: 'true'
+  name: genai-pgvector
+  namespace: code-assistant
+spec:
+  podSelector:
+    matchLabels:
+      app: genai-pgvector
+      gen-ai.opendatahub.io/pgvector: 'true'
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: ogxserver
+    ports:
+    - protocol: TCP
+      port: 5432
